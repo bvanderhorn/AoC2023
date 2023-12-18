@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "fs": "0.0.1-security",
+    "typescript": "^4.9.5"
+  }
+}
