@@ -20,9 +20,13 @@ var strnums = new Map<string, string>(
 );
 
 var calibration2 = calibration.copy();
-var values2 : string[] = calibration2.map( x => {
-    strnums.forEach((v,k) => x = x.replaceAll(k,v));
-    return x;
+var values2 : string[] = calibration2.map( (x:string) => {
+    var z: string = "";
+    x.split('').forEach( (c:string) =>  {
+        z += c;
+        strnums.forEach((v,k) => z = z.replace(k,v));
+    });
+    return z;
 });
 h.print(values2);
 
