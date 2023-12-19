@@ -1,10 +1,5 @@
 import * as h from '../helpers';
 
-var getAnswer = (input: string[]) : number => input.map( x => x.replace(/[^0-9]/g,"")).map( x=> x[0] + x.get(-1)).tonum().sum();
-
-var calibration = h.read("1", "calibration.txt");
-h.print("part 1:", getAnswer(calibration));
-
 var strnums = new Map<string, string>(
     [
         ["one", "1"],
@@ -19,15 +14,46 @@ var strnums = new Map<string, string>(
     ]
 );
 
-var calibration2 = calibration.copy();
-var values2 : string[] = calibration2.map( (x:string) => {
-    var z: string = "";
-    x.split('').forEach( (c:string) =>  {
-        z += c;
-        strnums.forEach((v,k) => z = z.replace(k,v));
-    });
-    return z;
-});
-h.print(values2);
+var getNum = (input: string) : string | undefined => {
+    var num = input.replace(/[^0-9]/g,"");
+    return (num.length > 0) ? num[0] : undefined;
+}
+var getReplaceNum = (input: string) : string | undefined => {
+    var z = input;
+    strnums.forEach((v,k) => z = z.replace(k,v));
+    return getNum(z);
+}
 
-h.print("part 2:", getAnswer(values2));
+var getFirstNum = (input: string) : string | undefined => {
+    var z = "";
+    for (const c of input.split('')) {
+        z += c;
+        var num = getReplaceNum(z);
+        if (num !== undefined) {
+            return num;
+        }
+    };
+    return undefined;
+}
+
+var getLastNum = (input: string) : string | undefined => {
+    var z = "";
+    for (const c of input.split('').reverse()) {
+        z = c + z;
+        var num = getReplaceNum(z);
+        if (num !== undefined) {
+            return num;
+        }
+    };
+    return undefined;
+}
+
+var getFirstLastInt = (input: string) : number => {
+    var first = getFirstNum(input);
+    var last = getLastNum(input);
+    return (first !== undefined && last !== undefined) ? +(first + last) : 0;
+}
+
+var calibration = h.read("1", "calibration.txt");
+h.print("part 1:", calibration.map( x => x.replace(/[^0-9]/g,"")).map( x=> x[0] + x.get(-1)).tonum().sum());
+h.print("part 2:", calibration.map(getFirstLastInt).sum());
