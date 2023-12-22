@@ -31,6 +31,8 @@ var getMaxRgb = (game: game) : rgb => {
     return max;
 }
 
+var getPower = (game: game) : number => getMaxRgb(game).prod();
+
 var games = h.read("2", "games.txt").map(g => getGame(g));
 h.print(games[0]);
 
@@ -41,4 +43,4 @@ var validGames = games.filter(g => {
 });
 
 h.print("part 1:", validGames.map(x => x.id).sum());
-
+h.print("part 2:", games.map(getPower).sum());
