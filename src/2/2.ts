@@ -19,8 +19,26 @@ var getGame = (input: string) : game => {
     return {id, grabs};
 }
 
-var games = h.read("2", "games.txt").map(g => getGame(g));
-var rgbMax: rgb = [12, 13, 14];
+var getMaxRgb = (game: game) : rgb => {
+    var max: rgb = [0, 0, 0];
+    game.grabs.forEach(g => {
+        max = [
+            Math.max(max[0], g[0]),
+            Math.max(max[1], g[1]),
+            Math.max(max[2], g[2])
+        ];
+    });
+    return max;
+}
 
+var games = h.read("2", "games.txt").map(g => getGame(g));
 h.print(games[0]);
+
+var rgbMax: rgb = [12, 13, 14];
+var validGames = games.filter(g => {
+    var max = getMaxRgb(g);
+    return max.plusEach(rgbMax.times(-1)).filter(x => x > 0).length == 0;
+});
+
+h.print("part 1:", validGames.map(x => x.id).sum());
 
