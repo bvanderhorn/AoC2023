@@ -58,6 +58,7 @@ declare global {
         replace(str:(string|RegExp), replacement:string): any[];
         match(regex: RegExp|string) : any[];
         match(regex: RegExp|string, onlySubs:boolean) : any[];
+        matches(regex: RegExp|string) : any[];
         trim() : any[];
         copy() : any[];
         unique(): any[];
@@ -260,6 +261,19 @@ if(!Array.prototype.match) {
         value: function match(this: any[][], regex:RegExp|string, onlySubs:boolean = true) : any[] {
             var r = typeof(regex) == 'string' ? new RegExp(regex) : regex;
             return this.mape(e => onlySubs ? e.match(r).slice(1) : e.match(r).slice(0));
+        }
+    });
+}
+
+if(!Array.prototype.matches) {
+    // return a boolean array stating if each element matches a regex
+    Object.defineProperty(Array.prototype, 'matches', {
+        enumerable: false,
+        writable:false,
+        configurable: false,
+        value: function matches(this: any[][], regex:RegExp|string) : any[] {
+            var r = typeof(regex) == 'string' ? new RegExp(regex) : regex;
+            return this.mape(e => e.match(r) != undefined && e.match(r).length > 0);
         }
     });
 }
