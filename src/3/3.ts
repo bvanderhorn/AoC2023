@@ -26,7 +26,7 @@ class PartNumber {
     }
 
     public get isPartNumber() : boolean {
-        return this.neighbors().map(xy => engine[xy[0]][xy[1]] ).matches(/^[^.0-9]$/).includes(true);
+        return this.neighbors().map(xy => engine[xy[0]][xy[1]] ).matches(/^[^0-9.]$/).includes(true);
     }
 
     public to_string() : string {
@@ -45,11 +45,11 @@ var getPartNumbersFromLine = (line: string, x: number) : PartNumber[] => {
                 yp = y;
             }
             part += c;
-        } else {
-            if (part.length > 0) {
-                partNumbers.push(new PartNumber(+(part), [x, yp]));
-                part = "";
-            }
+        } 
+
+        if (part.length > 0 && (!c.match(/^[0-9]$/) || y == line.length - 1)) {
+            partNumbers.push(new PartNumber(+(part), [x, yp]));
+            part = "";
         }
         y++;
     }
