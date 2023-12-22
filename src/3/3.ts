@@ -64,3 +64,4 @@ var numbers: PartNumber[] = [];
 engineLines.map((line, x) => numbers.push(...getPartNumbersFromLine(line, x)));
 h.print(numbers.slice(0,15).map(x => x.to_string()).join('\n'));
 h.print("part 1:", numbers.filter(n => n.isPartNumber).map(x => x.part).sum());
+h.print("number of partNumbers:", numbers.filter(n => n.isPartNumber).length, ", total number of numbers:", numbers.length);
