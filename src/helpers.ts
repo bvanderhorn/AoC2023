@@ -478,6 +478,26 @@ export function smallestCommonMultiple(nums:number[], verbose = false) : number 
     return combineFactors2(nums, verbose).prod();
 }
 
+export function findAllIndicesOf(re: RegExp, search: string) : number[] {
+    // return all indices of a regex in a string
+    var indices: number[] = [];
+    var match: RegExpExecArray | null;
+    while ((match = re.exec(search)) != null) {
+        indices.push(match.index);
+    }
+    return indices;
+}
+
+export function findAllOccurrencesOf(re: RegExp, search: string) : RegExpExecArray[]  {
+    // return all occurrences of a regex in a string
+    var occurrences: RegExpExecArray[] = [];
+    var match: RegExpExecArray | null;
+    while ((match = re.exec(search)) != null) {
+        occurrences.push(match);
+    }
+    return occurrences;
+}
+
 export class DoubleSet<T1> {
     private _setMap = new Map<T1, Set<T1>>();
 
