@@ -1,4 +1,3 @@
-import { count } from 'console';
 import * as h from '../helpers';
 
 var getDistances = (time:number) : number[] => h.range(0,time).map(x => x * (time - x));
