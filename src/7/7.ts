@@ -18,8 +18,12 @@ var getHighest = (hand1: string, hand2: string, withJokers: boolean = false): st
 
 var getValue = (hand:string, withJokers: boolean = false): number => {
     var cards = hand.split('');
-    if (withJokers)
+    if (withJokers){
+        if (hand == "JJJJJ")
+            return 5;
         cards = cards.filter(c => c != 'J');
+    }
+        
     var nofJokers = hand.length - cards.length;
 
     var groups = cards.unique().map(c => cards.count(c)).sort((a,b) => b-a);
