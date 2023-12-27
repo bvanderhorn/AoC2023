@@ -1,12 +1,16 @@
 import * as h from '../helpers';
 
 class MapRange {
-    public from: number;
-    public to: number;
+    public start: number;
+    public end : number;
     public add: number;
     constructor(rangeString: string) {
-        var [tostart, from, length] = rangeString.split(' ').tonum();
-        [this.from, this.to, this.add] = [from, from + length - 1, tostart - from];
+        var [tostart, start, length] = rangeString.split(' ').tonum();
+        [this.start, this.end, this.add] = [start, start + length - 1, tostart - start];
+    }
+
+    public get range() : [number, number] {
+        return [this.start, this.end];
     }
 }
 
@@ -24,14 +28,49 @@ class AMap {
 
     public convert(amount:number) : number {
         for (const r of this.map) {
-            if (amount >= r.from && amount <= r.to) 
+            if (h.isInInterval(r.range, amount)) 
                 return amount + r.add;
         }
         return amount;
     }
+
+    public convertRange(range: [number, number]) : [number, number][] {
+        var [start, end] = range;
+        var converted: [number, number][] = [];
+        for (const r of this.map) {
+            if (!h.overlaps(r.range, range))
+                continue;
+
+            if (r.start <= start){
+                if (r.end >= end) {
+                    converted.push([start + r.add, end + r.add]);
+                    return converted;
+                }
+                else {
+                    converted.push([start + r.add, r.end + r.add]);
+                    start = r.end + 1;
+                }
+            }
+
+            else { // if start < rstart < end
+                if (r.end >= end) {
+                    converted.push([r.start + r.add, end + r.add]);
+                    end = r.start - 1;
+                }
+                else { // if start < rstart < rend < end
+                    converted.push([r.start + r.add, r.end + r.add]);
+                    converted.push(...this.convertRange([r.end + 1, end]));
+                    converted.push(...this.convertRange([start, r.start - 1]));
+                    return converted;
+                }
+            }
+        }
+        converted.push([start, end]);
+        return converted;
+    }
 }
 
-var almanac = h.read("5", "almanac.txt");
+var almanac = h.read("5", "almanac.txt", "ex");
 var seeds: number[] = almanac[0][0].split(' ').slice(1).tonum();
 var maps = almanac.slice(1).map(x => new AMap(x));
 
