@@ -22,9 +22,8 @@ var getValue = (hand:string): number => {
     return values[types.findIndex(t => h.equals2(t, groups))];
 }
 
-var hands = h.read("7", "hands.txt", "ex").split(" ").map(x => [x[0], +x[1]]);
+var hands : [string, number][] = h.read("7", "hands.txt").split(" ").map(x => [x[0], +x[1]]);
 h.print(hands.slice(0,3));
 
-hands.sort((a,b) => getHighest(a.toString(),b.toString()) == a.toString() ? -1 : 1);
-h.print(hands);
+hands.sort((a,b) => getHighest(a[0],b[0]) == a[0] ? -1 : 1);
 h.print("part 1:", hands.map((h,i) => h[1] * (hands.length - i)).sum());
