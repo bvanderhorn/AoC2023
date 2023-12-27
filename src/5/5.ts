@@ -1,7 +1,17 @@
 import * as h from '../helpers';
 
+class MapRange {
+    public from: number;
+    public to: number;
+    public add: number;
+    constructor(rangeString: string) {
+        var [tostart, from, length] = rangeString.split(' ').tonum();
+        [this.from, this.to, this.add] = [from, from + length - 1, tostart - from];
+    }
+}
+
 class AMap {
-    public map: [number, number ,number][];
+    public map: MapRange[];
     public from: string;
     public to: string;
 
@@ -9,15 +19,13 @@ class AMap {
         var from_to = input[0].match(/^(\w+)-to-(\w+)\s/)!;
         this.from = from_to[1];
         this.to = from_to[2];
-        this.map = input.slice(1).split(' ').tonum();
+        this.map = input.slice(1).map(x => new MapRange(x));
     }
 
     public convert(amount:number) : number {
-        for (const [tostart, fromstart, length] of this.map) {
-            if (amount >= fromstart && amount < (fromstart + length)) {
-                var delta = amount - fromstart;
-                return tostart + delta;
-            }
+        for (const r of this.map) {
+            if (amount >= r.from && amount <= r.to) 
+                return amount + r.add;
         }
         return amount;
     }
