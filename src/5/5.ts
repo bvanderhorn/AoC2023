@@ -70,18 +70,30 @@ class AMap {
     }
 }
 
-var almanac = h.read("5", "almanac.txt", "ex");
+var almanac = h.read("5", "almanac.txt");
 var seeds: number[] = almanac[0][0].split(' ').slice(1).tonum();
-var maps = almanac.slice(1).map(x => new AMap(x));
+var maps : Map<string, AMap> = new Map();
+almanac.slice(1).map(x => new AMap(x)).map(x => maps.set(x.from, x));
 
 h.print(seeds);
-h.print(maps[0]);
+h.print(maps.get('seed'));
 
+// part 1
 var type = 'seed';
+var converts = seeds.copy();
 while (type != 'location') {
-    var map = maps.find(m => m.from == type)!;
-    seeds = seeds.map(s => map.convert(s));
-    type = map.to;
+    converts = converts.map(s => maps.get(type)!.convert(s));
+    type = maps.get(type)!.to;
 }
 
-h.print("part 1:", seeds.min());
+h.print("part 1:", converts.min());
+
+// part 2
+var seedRanges: [number, number][] = h.range(0, seeds.length, 2).map(i => [seeds[i], seeds[i] + seeds[i+1] - 1]);
+var convertRanges = seedRanges.copy();
+var type = 'seed';
+while (type != 'location') {
+    convertRanges = convertRanges.flatMap(r => maps.get(type)!.convertRange(r));
+    type = maps.get(type)!.to;
+}
+h.print("part 2:", convertRanges.map(r => r[0]).min());
