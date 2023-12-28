@@ -72,6 +72,7 @@ declare global {
         toSet() : Set<T>;
         permutations() : any[][];
         removeFirstOccurrence(element: any) : void;
+        todict() : Map<any,any>;
 
         print() : void;
         print(j1:string) : void;
@@ -865,6 +866,23 @@ if (!Array.prototype.permutations) {
         }
     });
 }
+
+if (!Array.prototype.todict) {
+    // convert to dictionary
+    Object.defineProperty(Array.prototype, 'todict', {
+        enumerable: false, 
+        writable: false, 
+        configurable: false, 
+        value: function todict(this: any[]): Map<any,any> {
+            var dict = new Map<any,any>();
+            for (let i=0;i<this.length;i++) {
+                dict.set(this[i][0], this[i][1]);
+            }
+            return dict;
+        }
+    });
+}
+
 
 if (!Set.prototype.toList) {
     // convert to list
