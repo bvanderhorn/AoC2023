@@ -12,19 +12,29 @@ class Node {
 
 var applyStep = (current: Node, instruction:string) : Node => nodes.get(instruction[0] == "L" ? current.left : current.right)!;
 
-var [instructions, rawNodes] = h.read("8", "maps.txt");
-var nodes = rawNodes.map((x:string) => new Node(x)).map((x:Node) => [x.name, x]).todict();
-instructions = instructions[0];
+var [rawInstructions, rawNodes] : string[][] = h.read("8", "maps.txt", "ex");
+var nodeList : Node[] = rawNodes.map(x => new Node(x));
+var nodes = nodeList.map(x => [x.name, x]).todict();
+var instructions = rawInstructions[0];
 
 var start = "AAA";
 var end = "ZZZ";
 
+// part 1
 var current = nodes.get(start);
 var steps = 0;
-while (current.name != end) {
-    var instruction = instructions.get(steps);
-    // h.print(current.name,'-', instruction,'=>',applyStep(current, instruction).name);
-    current = applyStep(current, instructions.get(steps));
+// while (current.name != end) {
+//     current = applyStep(current, instructions.get(steps));
+//     steps++;
+// }
+h.print("part 1:", steps);
+
+// part 2
+var currents = nodeList.filter(x => x.name.endsWith("A"));
+h.print(currents);
+var steps = 0;
+while (currents.filter(x => !x.name.endsWith("Z")).length > 0) {
+    currents = currents.map(x => applyStep(x, instructions.get(steps)));
     steps++;
 }
-h.print("part 1:", steps);
+h.print("part 2:", steps);
