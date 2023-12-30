@@ -1,10 +1,17 @@
 import * as h from '../helpers';
 
-type Cycle = {
-    cycleStart: number,
-    zIndicesStart: number[],
-    cycleLength: number,
-    zIndicesCycle: number[]
+class Cycle  {
+    public pureStart: number;
+    public pureLength: number;
+    constructor(
+        public initLength: number,
+        public ZIndicesInit: number[],
+        public loopLength: number,
+        public zIndicesLoop: number[]
+    ) {
+        this.pureStart = initLength*instructions.length + zIndicesLoop[0];
+        this.pureLength = loopLength*instructions.length;
+    }
 }
 
 class Node {
@@ -31,7 +38,7 @@ class Node {
                 var cycleStart = starts.reverse().indexOf(result.node.name);
                 var zIndicesStart = zIndices.slice(0,cycleStart).flat();
                 var zIndicesCycle = zIndices.slice(cycleStart).flat().plus(cycleStart*instructions.length*(-1));
-                return {cycleStart, zIndicesStart, cycleLength, zIndicesCycle};
+                return new Cycle(cycleStart, zIndicesStart, cycleLength, zIndicesCycle);
             }
             
             length += instructions.length;
@@ -51,7 +58,7 @@ var applySteps = (current: Node, instructions:string) : {node: Node, zIndices: n
     return {node: current, zIndices: zIndices};
 }
 
-var [rawInstructions, rawNodes] : string[][] = h.read("8", "maps.txt", "ex");
+var [rawInstructions, rawNodes] : string[][] = h.read("8", "maps.txt");
 var nodeList : Node[] = rawNodes.map(x => new Node(x));
 var nodes = nodeList.map(x => [x.name, x]).todict();
 var instructions = rawInstructions[0];
@@ -71,10 +78,25 @@ h.print("part 1:", steps);
 // part 2
 var currents = nodeList.filter(x => x.name.endsWith("A"));
 h.print(currents);
-h.print(currents.map(x => [x.name, x.cycle]).todict());
-var steps = 0;
+
+// raw approach: just step and compare
+// var steps = 0;
 // while (currents.filter(x => !x.name.endsWith("Z")).length > 0) {
 //     currents = currents.map(x => applyStep(x, instructions.get(steps)));
 //     steps++;
 // }
-h.print("part 2:", steps);
+
+// elegant approach: calculate cycles for each starting point
+h.print('instructions length:', instructions.length);
+h.print(currents.map(x => [x.name, x.cycle]).todict());
+// crucial insights:
+// 1. each cycle has an initial phase of exactly 1 instruction set, until it starts looping
+// 2. each cycle contains does not come accross Z values in the initial phase
+// 3. each cycle contains exactly 1 Z index in the loop
+// >> This means a 'pureStart' and 'pureLength' can be calculated for each cycle:
+//   - pureStart = initLength*instructions.length + zIndicesLoop[0]
+//   - pureLength = loopLength*instructions.length
+// 4. It turns out that the pureStart and pureLength are the same for each cycle!
+// 5. this means we can do a simple calculation to find the first mutual occurrence
+
+h.print("part 2:", h.smallestCommonMultiple(currents.map(x => x.cycle.pureLength)));
