@@ -1,8 +1,10 @@
 import * as h from '../helpers';
 
 type Cycle = {
-    length: number,
-    zIndices: number[]
+    cycleStart: number,
+    zIndicesStart: number[],
+    cycleLength: number,
+    zIndicesCycle: number[]
 }
 
 class Node {
@@ -16,15 +18,24 @@ class Node {
 
     public get cycle() : Cycle {
         var length = 0;
-        var zIndices: number[] = [];
-        var current = nodes.get(this.name);
+        var zIndices: number[][] = [];
+        var starts: string[] = [this.name];
         while (true) {
-            var result = applySteps(current, instructions);
-            current = result.node;
-            zIndices.push(...result.zIndices.plus(length));
+            var current = starts.last();
+            var result = applySteps(nodes.get(current)!, instructions);
+            zIndices.push(result.zIndices.plus(length));
+
+            if (starts.includes(result.node.name)) {
+                // we're in a loop!
+                var cycleLength = starts.reverse().indexOf(result.node.name) + 1;
+                var cycleStart = starts.reverse().indexOf(result.node.name);
+                var zIndicesStart = zIndices.slice(0,cycleStart).flat();
+                var zIndicesCycle = zIndices.slice(cycleStart).flat().plus(cycleStart*instructions.length*(-1));
+                return {cycleStart, zIndicesStart, cycleLength, zIndicesCycle};
+            }
+            
             length += instructions.length;
-            if (current.name == this.name)
-                return {length, zIndices};
+            starts.push(result.node.name);
         }
     }
 }
@@ -35,7 +46,7 @@ var applySteps = (current: Node, instructions:string) : {node: Node, zIndices: n
     for (var i=0; i<instructions.length; i++) {
         current = applyStep(current, instructions[i]);
         if (current.name.endsWith("Z"))
-            zIndices.push(i);
+            zIndices.push(i+1);
     }
     return {node: current, zIndices: zIndices};
 }
@@ -60,7 +71,7 @@ h.print("part 1:", steps);
 // part 2
 var currents = nodeList.filter(x => x.name.endsWith("A"));
 h.print(currents);
-h.print(currents.map(x => x.cycle));
+h.print(currents.map(x => [x.name, x.cycle]).todict());
 var steps = 0;
 // while (currents.filter(x => !x.name.endsWith("Z")).length > 0) {
 //     currents = currents.map(x => applyStep(x, instructions.get(steps)));
