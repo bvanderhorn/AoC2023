@@ -24,5 +24,5 @@ var findPrev = (history: number[]) : number => {
 }
 
 var histories = h.read("9", "histories.txt").split(' ').tonum();
-h.print("part 1:", histories.map(x => findNext(x)).sum());
-h.print("part 2:", histories.map(x => findPrev(x)).sum());
+h.print("part 1:", histories.map(findNext).sum());
+h.print("part 2:", histories.map(findPrev).sum());
