@@ -5,7 +5,7 @@ class Cycle  {
     public pureLength: number;
     constructor(
         public initLength: number,
-        public ZIndicesInit: number[],
+        public zIndicesInit: number[],
         public loopLength: number,
         public zIndicesLoop: number[]
     ) {
@@ -34,11 +34,11 @@ class Node {
 
             if (starts.includes(result.node.name)) {
                 // we're in a loop!
-                var cycleLength = starts.reverse().indexOf(result.node.name) + 1;
-                var cycleStart = starts.reverse().indexOf(result.node.name);
-                var zIndicesStart = zIndices.slice(0,cycleStart).flat();
-                var zIndicesCycle = zIndices.slice(cycleStart).flat().plus(cycleStart*instructions.length*(-1));
-                return new Cycle(cycleStart, zIndicesStart, cycleLength, zIndicesCycle);
+                var loopLength = starts.reverse().indexOf(result.node.name) + 1;
+                var initLength = starts.reverse().indexOf(result.node.name);
+                var zIndicesInit = zIndices.slice(0,initLength).flat();
+                var zIndicesLoop = zIndices.slice(initLength).flat().plus(initLength*instructions.length*(-1));
+                return new Cycle(initLength, zIndicesInit, loopLength, zIndicesLoop);
             }
             
             length += instructions.length;
@@ -69,15 +69,14 @@ var end = "ZZZ";
 // part 1
 var current = nodes.get(start);
 var steps = 0;
-// while (current.name != end) {
-//     current = applyStep(current, instructions.get(steps));
-//     steps++;
-// }
+while (current.name != end) {
+    current = applyStep(current, instructions.get(steps));
+    steps++;
+}
 h.print("part 1:", steps);
 
 // part 2
 var currents = nodeList.filter(x => x.name.endsWith("A"));
-h.print(currents);
 
 // raw approach: just step and compare
 // var steps = 0;
