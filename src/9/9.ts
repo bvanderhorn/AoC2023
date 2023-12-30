@@ -7,7 +7,7 @@ var findNext = (history: number[]) : number => {
     while (true) {
         add += diffs.last();
         diffs = getDiffs(diffs);
-        if (diffs.filter(x => x!=0).length == 0)
+        if (diffs.every(x => x == 0))
             return add;
     }
 }
@@ -18,7 +18,7 @@ var findPrev = (history: number[]) : number => {
         add += iterator*diffs[0];
         iterator *= -1;
         diffs = getDiffs(diffs);
-        if (diffs.filter(x => x!=0).length == 0)
+        if (diffs.every(x => x == 0))
             return add;
     }
 }

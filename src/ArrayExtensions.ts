@@ -73,6 +73,7 @@ declare global {
         permutations() : any[][];
         removeFirstOccurrence(element: any) : void;
         todict() : Map<any,any>;
+        getCoor(matches: (x: any) => boolean) : number[] | undefined;
 
         print() : void;
         print(j1:string) : void;
@@ -879,6 +880,27 @@ if (!Array.prototype.todict) {
                 dict.set(this[i][0], this[i][1]);
             }
             return dict;
+        }
+    });
+}
+
+if (!Array.prototype.getCoor) {
+    // get coordinates of first element that matches given condition
+    Object.defineProperty(Array.prototype, 'getCoor', {
+        enumerable: false, 
+        writable: false, 
+        configurable: false, 
+        value: function getCoor(this: any[], matches: (x: any) => boolean): number[] | undefined {
+            for (let i=0;i<this.length;i++) {
+                var cur = this[i];
+                if (Array.isArray(cur)) {
+                    var coor = cur.getCoor(matches);
+                    if (coor != undefined) return [i].concat(coor);
+                } else {
+                    if (matches(cur)) return [i];
+                }
+            }
+            return undefined;
         }
     });
 }
