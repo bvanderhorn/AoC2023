@@ -74,6 +74,7 @@ declare global {
         removeFirstOccurrence(element: any) : void;
         todict() : Map<any,any>;
         getCoor(matches: (x: any) => boolean) : number[] | undefined;
+        getCoors(matches: (x: any) => boolean) : number[][] | undefined;
 
         print() : void;
         print(j1:string) : void;
@@ -905,6 +906,28 @@ if (!Array.prototype.getCoor) {
     });
 }
 
+
+if (!Array.prototype.getCoors) {
+    // get coordinates of all elements that matches given condition
+    Object.defineProperty(Array.prototype, 'getCoors', {
+        enumerable: false, 
+        writable: false, 
+        configurable: false, 
+        value: function getCoors(this: any[], matches: (x: any) => boolean): number[][] | undefined {
+	    var result: number[][] = [];
+            for (let i=0;i<this.length;i++) {
+                var cur = this[i];
+                if (Array.isArray(cur)) {
+                    var coor = cur.getCoors(matches);
+                    if (coor != undefined) result.push(...coor.map(c => [i].concat(c)));
+                } else {
+                    if (matches(cur)) result.push([i]);
+                }
+            }
+            return result.length == 0 ? undefined : result;
+        }
+    });
+}
 
 if (!Set.prototype.toList) {
     // convert to list
