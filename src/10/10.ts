@@ -45,9 +45,11 @@ var getInternalNb = (pos: number[], turn:string) : number[][] => {
 	return materializeNb(pos, nb);
 }
 
-var materializeNb = (pos:number[], nb:string) : number[][] => h.getnb(pos, tubes.length-1, tubes[0].length-1, nb);
+var materializeNb = (pos:number[], nb:string) : number[][] => nb.length == 0 ? [] : h.getnb(pos, tubes.length-1, tubes[0].length-1, nb);
 
-var tubes = h.read("10", "tubes.txt", "ex").split('');
+var tubes = h.read("10", "tubes.txt", "ex").split('').slice2(0,-1);
+h.print("tubes dims:", tubes.length, tubes[0].length);
+h.print(tubes);
 var sPos: number[] = tubes.getCoor(x => x == 'S')!;
 var snake: number[][] = [sPos, getConnectors(sPos)[1]];
 h.print(snake);
@@ -80,11 +82,13 @@ var lr = turns.map(t => t[0] == t[1] ? 'S' : 'lurdl'.includes(t) ? 'R' : 'L');
 
 var insideDir = lr.count('R') > lr.count('L') ? 'R' : 'L';
 
-h.print(snake.map((s,i) => [s, lr[i]]).todict());
+h.print(snake.map((s,i) => [s, turns[i]]).todict());
 h.print("insideDir:", insideDir);
 
-var internalNb : string[] = turns.map((t,i) => getInternalNb(snake[i],t)).flat().filter(n => !snake.includes2(n)).unique();
+var internalNb  = turns.map((t,i) => getInternalNb(snake[i],t)).flat().filter(n => !snake.includes2(n)).unique();
 
 h.print(internalNb);
+var test = [3,4];
+h.print(getInternalNb(test, 'dl'));
 
 var internals : number[][] = [];
