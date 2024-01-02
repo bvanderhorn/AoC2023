@@ -17,8 +17,5 @@ var addEmptySpace = (pair: number[][], factor:number): number => {
 var emptySpace1 = pairs.map(p => addEmptySpace(p,1)).sum();
 h.print("part 1:", distances.sum() + emptySpace1);
 
-
 var emptySpace2 = pairs.map(p => addEmptySpace(p,999999)).sum();
 h.print("part 3:", distances.sum() + emptySpace2);
-
-
