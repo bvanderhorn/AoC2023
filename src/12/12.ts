@@ -22,11 +22,13 @@ var getSolutions = (mask: string[], struct: number[],verbose: boolean = false, d
 		h.printVerbose(verbose, init, "i:", i);
 		var premask0 = mask.slice(0, i);
 		var mask0 = mask.slice(i, i + struct0);
+		h.printVerbose(verbose, init, "m:",mask0.join("")); 
 		if (premask0.some(x => x == '#')) return solutions;
 		if (mask0.some(x => x == '.')) continue;
 		if (struct.length > 1 && mask[i+struct0] == '#') continue;
 		if (struct.length == 1) {
-			if (mask0.slice(i+struct0).some(x => x == '#')) continue;
+			if (mask.slice(i+struct0).some(x => x == '#')) continue;
+			h.printVerbose(verbose, init, "> valid!");
 			solutions++;
 			continue;
 		}
@@ -36,7 +38,7 @@ var getSolutions = (mask: string[], struct: number[],verbose: boolean = false, d
 	return solutions;
 }
 
-var springs: Spring[] = h.read("12", "springs.txt", "ex").filter(x => x.length > 0).map(s => new Spring(s));
+var springs: Spring[] = h.read("12", "springs.txt").filter(x => x.length > 0).map(s => new Spring(s));
 
 // h.print(springs.slice(0,2));
 h.print(getSolutions(springs.last().mask, springs.last().struct, true));
