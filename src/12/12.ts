@@ -11,28 +11,33 @@ class Spring  {
 	}
 }
 
-var getSolutions = (mask: string[], struct: number[]) : number => {
+var getSolutions = (mask: string[], struct: number[],verbose: boolean = false, depth:number = 0) : number => {
+	var init = " ".repeat(depth);
+	h.printVerbose(verbose, init, "solve:", mask.join(""), struct);
 	var minLength = struct.sum() + struct.length -1;
 	if (mask.length < minLength) return 0;
 	var struct0 = struct[0];
 	var solutions = 0;
 	for (const i of h.range(0, mask.length - minLength + 1)) {
+		h.printVerbose(verbose, init, "i:", i);
 		var premask0 = mask.slice(0, i);
 		var mask0 = mask.slice(i, i + struct0);
 		if (premask0.some(x => x == '#')) return solutions;
-		if (!mask0.some(x => x == '.')) continue;
+		if (mask0.some(x => x == '.')) continue;
 		if (struct.length > 1 && mask[i+struct0] == '#') continue;
 		if (struct.length == 1) {
 			if (mask0.slice(i+struct0).some(x => x == '#')) continue;
 			solutions++;
 			continue;
 		}
-		solutions += getSolutions(mask.slice(i+struct0+1), struct.slice(1));
+		solutions += getSolutions(mask.slice(i+struct0+1), struct.slice(1), verbose, depth+1);
 	}
+	h.printVerbose(verbose, init, "=>", solutions);
 	return solutions;
 }
 
-var springs: Spring[] = h.read("12", "springs.txt").map(s => new Spring(s));
+var springs: Spring[] = h.read("12", "springs.txt", "ex").filter(x => x.length > 0).map(s => new Spring(s));
 
-h.print(springs.slice(0,2));
+// h.print(springs.slice(0,2));
+h.print(getSolutions(springs.last().mask, springs.last().struct, true));
 h.print("part 1:", springs.map(s => getSolutions(s.mask, s.struct)).sum());
