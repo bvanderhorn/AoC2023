@@ -236,7 +236,7 @@ if(!Array.prototype.rotate) {
     value: function rotate(this: any[][], quarts: number) : any[][] {
             var res = this;
             for (var i = 0; i < quarts; i++) {
-                res = res.transpose().map(l => l.reverse());
+                res = res.transpose().map(l => l.copy().reverse());
             }
             return res;
         }
