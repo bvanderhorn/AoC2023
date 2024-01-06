@@ -11,7 +11,11 @@ class Spring  {
 	}
 }
 
-var getSolutions = (mask: string[], struct: number[],verbose: boolean = false, depth:number = 0) : number => {
+var getSolutions = (mask: string[], struct: number[], known:Map<string,number> = new Map<string,number>(), verbose: boolean = false, depth:number = 0) : number => {
+	var str = mask.join('') + ' ' + struct.toString();
+	var existing = known.get(str);
+	if (existing != undefined) return existing;
+
 	var init = " ".repeat(depth);
 	h.printVerbose(verbose, init, "solve:", mask.join(""), struct);
 	var minLength = struct.sum() + struct.length -1;
@@ -32,8 +36,9 @@ var getSolutions = (mask: string[], struct: number[],verbose: boolean = false, d
 			solutions++;
 			continue;
 		}
-		solutions += getSolutions(mask.slice(i+struct0+1), struct.slice(1), verbose, depth+1);
+		solutions += getSolutions(mask.slice(i+struct0+1), struct.slice(1), known, verbose, depth+1);
 	}
+	known.set(str, solutions);
 	h.printVerbose(verbose, init, "=>", solutions);
 	return solutions;
 }
@@ -47,12 +52,19 @@ h.print("part 1:", springs.map(s => getSolutions(s.mask, s.struct)).sum());
 var springs2 = springs.map(s => new Spring(h.ea(5,s.mask.join('')).join('?') + ' ' + h.ea(5,s.struct).flat().toString()));
 h.print(springs2[0]);
 
+console.time("test");
+h.print(getSolutions(springs2[2].mask, springs2[2].struct));
+console.timeEnd("test");
+
+//console.exit();
+
 var amounts : number[] = [];
 var p = new h.ProgressBar(springs2.length, springs2.length);
 for (var i = 0; i<springs2.length; i++) {
 	var s = springs2[i];
-	var a = getSolutions(s.mask, s.struct);
-	amounts.push(a);
-	p.show(i);
+	//var a = getSolutions(s.mask, s.struct);
+	//amounts.push(a);
+	//p.show(i);
+	//h.print(i+2, '/', springs2.length, '...');
 }
-h.print("part 2:", amounts.sum());
+//h.print("part 2:", amounts.sum());
