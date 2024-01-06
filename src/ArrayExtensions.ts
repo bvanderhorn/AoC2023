@@ -105,6 +105,7 @@ declare global {
         stringc(matches: (x: any) => boolean, color:string) : string;
         printc(matches: (x: any) => boolean) : void;
         printc(matches: (x: any) => boolean, color:string) : void;
+        map(make: (x:string) => any) : any[];
     }
 
     interface Set<T> {
@@ -925,6 +926,18 @@ if (!Array.prototype.getCoors) {
                 }
             }
             return result.length == 0 ? undefined : result;
+        }
+    });
+}
+
+if (!String.prototype.map) {
+    // map each string character of a string to a new value
+    Object.defineProperty(String.prototype, 'map', {
+        enumerable: false, 
+        writable: false, 
+        configurable: false, 
+        value: function map(this: string, make: (x:string) => any): any[] {
+            return this.split('').map(make);
         }
     });
 }
