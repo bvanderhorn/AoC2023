@@ -19,6 +19,14 @@ var progress = (beam: Beam) : Beam[] => {
 }
 
 var contraption = h.read("16", "contraption.txt").split('');
-
-var init: Beam = [[0, 0], 'r']; 
 h.print(contraption[0].slice(0,5));
+
+var init: Beam = [[0, 0], 'r'];
+var energized: Beam[] = [init];
+var iterator = 0;
+while(iterator < energized.length){
+    var newBeams = progress(energized[iterator]);
+    newBeams.map(b => {if (!energized.includes2(b)) energized.push(b);});
+    iterator++;
+}
+h.print("part 1:", energized.length);
