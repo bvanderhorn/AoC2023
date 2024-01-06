@@ -908,7 +908,7 @@ if (!Array.prototype.getCoor) {
 
 
 if (!Array.prototype.getCoors) {
-    // get coordinates of all elements that matches given condition
+    // get coordinates of all elements that match given condition
     Object.defineProperty(Array.prototype, 'getCoors', {
         enumerable: false, 
         writable: false, 

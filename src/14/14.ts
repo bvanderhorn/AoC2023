@@ -35,23 +35,40 @@ var shiftDir = (platform: string[][], dir: string) : string[][] => {
     return platform;
 }
 
-var load = (platform: string[][], dir: string) : number => {
-    return platform.mapij((i,j,x) => {
-        if (x == 'O') {
-            switch (dir) {
-                case "n": return platform.length - i;
-                case "s": return i+1;
-                case "w": return j+1;
-                case "e": return platform[0].length - j;
-            }
-            return undefined!;
-        }
-        return 0;
-    }).sum0().sum();
+var cycle = (platform: string[][]) : void => {
+    shiftDir(platform, 'n');
+    shiftDir(platform, 'w');
+    shiftDir(platform, 's');
+    shiftDir(platform, 'e');
 }
 
-var platform = h.read("14", "platform.txt").split('');
-var shiftedNorth = shiftDir(platform.copy(), 'n');
+var northLoad = (platform: string[][]) : number => platform.mapij((i,j,x) => (x == 'O') ? platform.length - i : 0).sum0().sum();
+
+var startPlatform = h.read("14", "platform.txt").split('');
+var shiftedNorth = shiftDir(startPlatform.copy(), 'n');
 
 // shiftedNorth.printc(x => x == 'O');
-h.print("part 1:", load(shiftedNorth, 'n'));
+h.print("part 1:", northLoad(shiftedNorth));
+
+// part 2
+var cycles = 1000000000;
+var states = new Map<string, number>();
+var platform = startPlatform.copy(); 
+var [loopStart, loopLength, loopIndex] = [-1, -1, -1];
+for (var i = 0; i <= cycles; i++) {
+    var state = platform.string();
+
+    if (states.has(state)) {
+        // found a loop!!
+        loopStart = states.get(state)!;
+        loopLength = i - loopStart;
+        loopIndex = (cycles - i) % loopLength;
+        for (var j = 0; j < loopIndex; j++) cycle(platform);
+        break;
+    }
+    states.set(state, i);
+    cycle(platform);
+}
+
+h.print("loop start:", loopStart, "loop length:", loopLength, "loop index:", loopIndex);
+h.print("part 2:", northLoad(platform));
