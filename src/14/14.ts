@@ -35,7 +35,23 @@ var shiftDir = (platform: string[][], dir: string) : string[][] => {
     return platform;
 }
 
-var platform = h.read("14", "platform.txt", "ex").split('');
+var load = (platform: string[][], dir: string) : number => {
+    return platform.mapij((i,j,x) => {
+        if (x == 'O') {
+            switch (dir) {
+                case "n": return platform.length - i;
+                case "s": return i+1;
+                case "w": return j+1;
+                case "e": return platform[0].length - j;
+            }
+            return undefined!;
+        }
+        return 0;
+    }).sum0().sum();
+}
+
+var platform = h.read("14", "platform.txt").split('');
 var shiftedNorth = shiftDir(platform.copy(), 'n');
 
-shiftedNorth.printc(x => x == 'O');
+// shiftedNorth.printc(x => x == 'O');
+h.print("part 1:", load(shiftedNorth, 'n'));
