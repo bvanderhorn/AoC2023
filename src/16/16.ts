@@ -50,16 +50,26 @@ interesting.map(i => intFromY.get(i[1]) == undefined ? intFromY.set(i[1], [i]) :
 var init: Beam = [[0, 0], 'r'];
 var remaining: Beam[] = [init];
 var lines: Line[] = [];
+var v = true; // verbose
+var passed : Beam[] = [];
 while(remaining.length > 0){
     var cur = remaining.shift()!;
+    h.printv(v, "cur:", cur,", remaining:", remaining.length);
     var next = getNextInteresting(cur);
+    h.printv(v, "next:", next);
     if (next == undefined) {
-        lines.push([cur[0], getNextWall(cur)]);
+        var wall = getNextWall(cur);
+        h.printv(v, "wall:", wall);
+        lines.push([cur[0], wall]);
         continue;
     }
 
     lines.push([cur[0], next[0]]);
-    var afterNext = progress(next);
+
+    if (passed.includes(next) || remaining.includes(next)) continue;
+    passed.push(next);
+    var afterNext = progress(next).filter(a => !passed.includes(a) && !remaining.includes(a));
+    h.printv(v, "afterNext:", afterNext);
     remaining.push(...afterNext);
 }
 
