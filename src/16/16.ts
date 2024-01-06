@@ -1,10 +1,10 @@
 import * as h from '../helpers';
 
 type Beam = [[number, number], string];
+type Line = [[number, number], [number, number]];
 
 var progress = (beam: Beam) : Beam[] => {
-    var [pos, dir] = beam;
-    var [x, y] = pos;
+    var [[x,y], dir] = beam;
     var nb = "";
     var tile = contraption[x][y];
     if ('.|-'.includes(tile)) {
@@ -14,21 +14,54 @@ var progress = (beam: Beam) : Beam[] => {
     }
     if (tile == '\\') nb = dir == 'r' ? 'd' : dir == 'l' ? 'u' : dir == 'u' ? 'l' : 'r';
     if (tile == '/') nb = dir == 'r' ? 'u' : dir == 'l' ? 'd' : dir == 'u' ? 'r' : 'l';
-    var nbs = nb.map( n => h.getnb(pos, contraption.length-1, contraption[0].length-1, n)[0]);
+    var nbs = nb.map( n => h.getnb([x,y], contraption.length-1, contraption[0].length-1, n)[0]);
 
 	//h.print(beam, tile, "=>", nb, "=>", nbs);
     return nb.map((n:string,i:number) => [nbs[i], n] as Beam).filter(b => b[0] != undefined);
 }
 
-var contraption = h.read("16", "contraption.txt").split('');
+var getNextInteresting = (beam: Beam) : Beam | undefined => {
+    var [[x,y], dir] = beam;
+
+    var intline = 'ud'.includes(dir) ? intFromY.get(y) : intFromX.get(x);
+    if (intline == undefined) return undefined;
+    var nextInts = intline.filter(i => dir == 'u' ? i[0] <= x : dir == 'd' ? i[0] >= x : dir == 'l' ? i[1] <= y : i[1] >= y)
+        .sort((a,b) => dir == 'u' ? b[0] - a[0] : dir == 'd' ? a[0] - b[0] : dir == 'l' ? b[1] - a[1] : a[1] - b[1])
+        .map(i => [i, dir] as Beam);
+    return nextInts.length == 0 ? undefined : nextInts[0];
+}
+
+var getNextWall = (beam: Beam) : [number, number] => {
+    var [[x,y], dir] = beam;
+    return dir == 'u' ? [0, y] : dir == 'd' ? [contraption.length-1, y] : dir == 'l' ? [x, 0] : [x, contraption[0].length-1];
+}
+
+var contraption = h.read("16", "contraption.txt", "ex").split('');
 // h.print(contraption[0].slice(0,5));
 
+// isolate interesting points on the contraption
+var interesting = contraption.getCoors(x => x != '.')!;
+var intFromX = new Map<number, number[][]>();
+interesting.map(i => intFromX.get(i[0]) == undefined ? intFromX.set(i[0], [i]) : intFromX.get(i[0])!.push(i));
+var intFromY = new Map<number, number[][]>();
+interesting.map(i => intFromY.get(i[1]) == undefined ? intFromY.set(i[1], [i]) : intFromY.get(i[1])!.push(i));
+
+// find all the lines between interesting points and/or the edges of the contraption
 var init: Beam = [[0, 0], 'r'];
-var energized: Beam[] = [init];
-var iterator = 0;
-while(iterator < energized.length){
-    var newBeams = progress(energized[iterator]);
-    newBeams.map(b => {if (!energized.includes2(b)) energized.push(b);});
-    iterator++;
+var remaining: Beam[] = [init];
+var lines: Line[] = [];
+while(remaining.length > 0){
+    var cur = remaining.shift()!;
+    var next = getNextInteresting(cur);
+    if (next == undefined) {
+        lines.push([cur[0], getNextWall(cur)]);
+        continue;
+    }
+
+    lines.push([cur[0], next[0]]);
+    var afterNext = progress(next);
+    remaining.push(...afterNext);
 }
-h.print("part 1:", energized.map(e => e[0]).unique().length);
+
+h.print(lines);
+//h.print("part 1:", energized.map(e => e[0]).unique().length);
