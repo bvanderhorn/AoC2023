@@ -51,25 +51,9 @@ var getSolutions = (mask: string[], struct: number[], v: boolean = false, depth:
 }
 
 var springs: Spring[] = h.read("12", "springs.txt").filter(x => x.length > 0).map(s => new Spring(s));
-
 h.print("part 1:", springs.map(s => getSolutions(s.mask, s.struct)).sum());
 
 var springs2 = springs.map(s => new Spring(h.ea(5,s.mask.join('')).join('?') + ' ' + h.ea(5,s.struct).flat().toString()));
 
-console.time("test");
-var t = springs2[2];
-// h.print(t);
-h.print(getSolutions(t.mask, t.struct));
-console.timeEnd("test");
-
-//console.exit();
-
-var amounts : number[] = [];
-var p = new h.ProgressBar(springs2.length, springs2.length);
-for (var i = 0; i<springs2.length; i++) {
-	var s = springs2[i];
-	var a = getSolutions(s.mask, s.struct);
-	amounts.push(a);
-	p.show(i);
-}
+var amounts: number[] = springs2.mapWithProgress(s => getSolutions(s.mask, s.struct));
 h.print("part 2:", amounts.sum());

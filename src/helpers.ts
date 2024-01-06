@@ -585,3 +585,23 @@ export class MultiMap<K,V> {
 
     public size = () : number => this._maps.map(x => x.size).sum();
 }
+
+export {}
+declare global {
+    interface Array<T>  {
+        mapWithProgress(make: (x:any, i:number) => any, intervals: number) : any[];
+        mapWithProgress(make: (x:any, i:number) => any) : any[];
+    }
+}
+
+if (!Array.prototype.mapWithProgress) {
+    Array.prototype.mapWithProgress = function (make: (x:any, i:number) => any, intervals: number = -1) : any[] {
+        var bar = new ProgressBar(this.length, intervals < 0 ? this.length : intervals);
+        return this.map((x:any, j:number) => {
+            var result = make(x,j);
+            bar.show(j);
+            return result;
+        });
+    }
+}
+
