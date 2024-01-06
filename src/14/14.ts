@@ -19,17 +19,18 @@ var shiftDir = (platform: string[][], dir: string) : string[][] => {
             }
         }
     })
-    platform = tempPlatform.rotate(dir == 'n' ? 0 : dir == 'w' ? 3 : dir == 's' ? 2 : 1);
+    var newTempPlatform = tempPlatform.rotate(dir == 'n' ? 0 : dir == 'w' ? 3 : dir == 's' ? 2 : 1);
+    platform.mapij((i,j,_) => platform[i][j] = newTempPlatform[i][j]);
     return platform;
 }
 
-var shiftDirs = (platform: string[][], dirs:string) : void => {for(const dir of dirs) shiftDir(platform, dir)};
+var shiftDirs = (platform: string[][], dirs:string) : void => {for(const dir of dirs.split('')) shiftDir(platform, dir)};
 
 var cycle = (platform: string[][]) : void => shiftDirs(platform, 'nwse');
 
 var northLoad = (platform: string[][]) : number => platform.mapij((i,j,x) => (x == 'O') ? platform.length - i : 0).sum0().sum();
 
-var startPlatform = h.read("14", "platform.txt", "ex").split('');
+var startPlatform = h.read("14", "platform.txt").split('');
 var shiftedNorth = shiftDir(startPlatform.copy(), 'n');
 
 // shiftedNorth.printc(x => x == 'O');
