@@ -35,7 +35,7 @@ export function read(folder:string,filename:string, options:string='') : any[] {
     return input.length == 1 ?  input[0] : input;
 }
 
-export function printVerbose(doPrint:boolean, ...input:any[]) {
+export function printv(doPrint:boolean, ...input:any[]) {
     if (doPrint) print(...input);
 }
 
