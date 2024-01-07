@@ -52,7 +52,9 @@ var remaining: Beam[] = [init];
 var lines: Line[] = [];
 var v = true; // verbose
 var passed : Beam[] = [];
-while(remaining.length > 0){
+var iterator = 0;
+while(remaining.length > 0 && iterator < 50){
+    iterator++;
     var cur = remaining.shift()!;
     h.printv(v, "cur:", cur,", remaining:", remaining.length);
     var next = getNextInteresting(cur);
@@ -66,9 +68,9 @@ while(remaining.length > 0){
 
     lines.push([cur[0], next[0]]);
 
-    if (passed.includes(next) || remaining.includes(next)) continue;
-    passed.push(next);
-    var afterNext = progress(next).filter(a => !passed.includes(a) && !remaining.includes(a));
+    // if (passed.includes2(next) || remaining.includes2(next)) continue;
+    // passed.push(next);
+    var afterNext = progress(next).filter(a => !passed.includes2(a) && !remaining.includes2(a));
     h.printv(v, "afterNext:", afterNext);
     remaining.push(...afterNext);
 }
