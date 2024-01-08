@@ -49,16 +49,64 @@ var mergeIntervals = (linesMap: Map<number, Line[]>, dir:string) : Line[] => {
 
 var cross = (a: Line, b: Line) : number => {
     // a and b are horizontal/vertical combination
-    var horizontal = a[0][0] == a[1][0] ? a : b;
-    var vertical = a[0][0] == a[1][0] ? b : a;
-    return horizontal[0][0] <= vertical[0][0] && vertical[0][0] <= horizontal[1][0] && vertical[0][1] <= horizontal[0][1] && horizontal[0][1] <= vertical[1][1]
+    var hor = a[0][0] == a[1][0] ? a : b;
+    var ver = a[0][0] == a[1][0] ? b : a;
+    return hor[0][0] <= ver[0][0] && ver[0][0] <= hor[1][0] && ver[0][1] <= hor[0][1] && hor[0][1] <= ver[1][1] 
         ? 1 : 0;
 }
 
 var getLength = (line: Line) : number => Math.abs(line[0][0] - line[1][0]) + Math.abs(line[0][1] - line[1][1]) + 1;
 
-var contraption = h.read("16", "contraption.txt", "ex").split('');
-// h.print(contraption[0].slice(0,5));
+var getEnergized = (init: Beam, v: boolean = false) : number => {
+    // find all the lines between interesting points and/or the edges of the contraption
+    var remaining: Beam[] = [init];
+    var lines: Line[] = [];
+    var passed : Beam[] = [];
+    var iterator = 0;
+    while(remaining.length > 0){
+        iterator++;
+        var cur = remaining.shift()!;
+        h.printv(v, "cur:", cur,", remaining:", remaining.length);
+        var next = getNextInteresting(cur);
+        h.printv(v, "next:", next);
+        if (next == undefined) {
+            var wall = getNextWall(cur);
+            h.printv(v, "wall:", wall);
+            lines.push([cur[0], wall]);
+            continue;
+        }
+
+        lines.push([cur[0], next[0]]);
+
+        var afterNext = progress(next).filter(a => !passed.includes2(a) && !remaining.includes2(a));
+        h.printv(v, "afterNext:", afterNext);
+        remaining.push(...afterNext);
+        passed.push(cur);
+    }
+
+    // separate lines into vertical and horizontal
+    var horizontals = lines.filter(l => l[0][0] == l[1][0]);
+    var horizontalsByX = new Map<number, Line[]>();
+    horizontals.map(l => horizontalsByX.get(l[0][0]) == undefined ? horizontalsByX.set(l[0][0], [l]) : horizontalsByX.get(l[0][0])!.push(l));
+
+    var verticals = lines.filter(l => l[0][1] == l[1][1] && l[0][0] != l[1][0]);
+    var verticalsByY = new Map<number, Line[]>();
+    verticals.map(l => verticalsByY.get(l[0][1]) == undefined ? verticalsByY.set(l[0][1], [l]) : verticalsByY.get(l[0][1])!.push(l));
+
+    // merge intervals into new set of lines
+    var mergedH = mergeIntervals(horizontalsByX, 'x');
+    var mergedV = mergeIntervals(verticalsByY, 'y');
+
+    // h.print(mergedH.length + mergedV.length, "merged:\n",mergedH.concat(mergedV));
+
+    // calculate energized: all horizontal points, plus all vertical points minus all crossings between horizontals and verticals
+    var energized = mergedH.map(i => getLength(i)).sum();
+    mergedV.map(v => energized += getLength(v) - mergedH.map(h => cross(h, v)).sum());
+
+    return energized;
+}
+
+var contraption = h.read("16", "contraption.txt").split('');
 
 // isolate interesting points on the contraption
 var interesting = contraption.getCoors(x => x != '.')!;
@@ -67,64 +115,20 @@ interesting.map(i => intFromX.get(i[0]) == undefined ? intFromX.set(i[0], [i]) :
 var intFromY = new Map<number, number[][]>();
 interesting.map(i => intFromY.get(i[1]) == undefined ? intFromY.set(i[1], [i]) : intFromY.get(i[1])!.push(i));
 
-// find all the lines between interesting points and/or the edges of the contraption
+// part 1
 var init: Beam = [[0, 0], 'r'];
-var remaining: Beam[] = [init];
-var lines: Line[] = [];
-var v = false; // verbose
-var passed : Beam[] = [];
-var iterator = 0;
-while(remaining.length > 0 && iterator < 50){
-    iterator++;
-    var cur = remaining.shift()!;
-    h.printv(v, "cur:", cur,", remaining:", remaining.length);
-    var next = getNextInteresting(cur);
-    h.printv(v, "next:", next);
-    if (next == undefined) {
-        var wall = getNextWall(cur);
-        h.printv(v, "wall:", wall);
-        lines.push([cur[0], wall]);
-        continue;
-    }
-
-    lines.push([cur[0], next[0]]);
-
-    // if (passed.includes2(next) || remaining.includes2(next)) continue;
-    // passed.push(next);
-    var afterNext = progress(next).filter(a => !passed.includes2(a) && !remaining.includes2(a));
-    h.printv(v, "afterNext:", afterNext);
-    remaining.push(...afterNext);
-}
-
-h.print(lines.length, "lines:\n",lines);
-
-// separate lines into vertical and horizontal
-var horizontals = lines.filter(l => l[0][0] == l[1][0]);
-var horizontalsByX = new Map<number, Line[]>();
-horizontals.map(l => horizontalsByX.get(l[0][0]) == undefined ? horizontalsByX.set(l[0][0], [l]) : horizontalsByX.get(l[0][0])!.push(l));
-
-var verticals = lines.filter(l => l[0][1] == l[1][1] && l[0][0] != l[1][0]);
-var verticalsByY = new Map<number, Line[]>();
-verticals.map(l => verticalsByY.get(l[0][1]) == undefined ? verticalsByY.set(l[0][1], [l]) : verticalsByY.get(l[0][1])!.push(l));
-
-// h.print(horizontalsByX.get(7));
-// h.print(mergeIntervals(horizontalsByX, 'x'));
-// h.print(verticalsByY.get(7));
-
-// merge intervals into new set of lines
-var mergedH = mergeIntervals(horizontalsByX, 'x');
-var mergedV = mergeIntervals(verticalsByY, 'y');
-
-h.print(mergedH.length + mergedV.length, "merged:\n",mergedH.concat(mergedV));
-
-var energized = mergedH.map(i => getLength(i)).sum();
-mergedV.map(v => energized += getLength(v) - mergedH.map(h => cross(h, v)).sum());
-
+var energized = getEnergized(init);
 h.print("part 1:", energized);
 
-// var testHorizontalsByX = new Map<number, Line[]>();
+// part 2
+var vertEdge = h.range(0,contraption.length);
+var horEdge = h.range(0,contraption[0].length);
+var inits : Beam[] = [
+    vertEdge.map(e => [[e, 0], 'r'] as Beam), 
+    vertEdge.map(e => [[e, contraption[0].length-1], 'l'] as Beam),
+    horEdge.map(e => [[0, e], 'd'] as Beam), 
+    horEdge.map(e => [[contraption.length-1, e], 'u'] as Beam)
+].flat();
 
-// var testIntervals = [[0,0], [2,3], [1,1], [7,7], [4,4], [1,1]];
-// h.print(testIntervals, "=>", h.mergeIntervals(testIntervals, true));
-
-// h.print(mergeIntervals(testHorizontalsByX, 'x'));
+// var energizeds = inits.mapWithProgress(i => getEnergized(i), 100);
+// h.print("part 2:", energizeds.max());
