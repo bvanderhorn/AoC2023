@@ -47,12 +47,15 @@ var mergeIntervals = (linesMap: Map<number, Line[]>, dir:string) : Line[] => {
     return newLines;
 }
 
-var cross = (a: Line, b: Line) : boolean => {
+var cross = (a: Line, b: Line) : number => {
     // a and b are horizontal/vertical combination
     var horizontal = a[0][0] == a[1][0] ? a : b;
     var vertical = a[0][0] == a[1][0] ? b : a;
-    return horizontal[0][0] <= vertical[0][0] && vertical[0][0] <= horizontal[1][0] && vertical[0][1] <= horizontal[0][1] && horizontal[0][1] <= vertical[1][1];
+    return horizontal[0][0] <= vertical[0][0] && vertical[0][0] <= horizontal[1][0] && vertical[0][1] <= horizontal[0][1] && horizontal[0][1] <= vertical[1][1]
+        ? 1 : 0;
 }
+
+var getLength = (line: Line) : number => Math.abs(line[0][0] - line[1][0]) + Math.abs(line[0][1] - line[1][1]) + 1;
 
 var contraption = h.read("16", "contraption.txt", "ex").split('');
 // h.print(contraption[0].slice(0,5));
@@ -109,10 +112,15 @@ verticals.map(l => verticalsByY.get(l[0][1]) == undefined ? verticalsByY.set(l[0
 // h.print(verticalsByY.get(7));
 
 // merge intervals into new set of lines
-var merged = mergeIntervals(horizontalsByX, 'x');
-merged.push(...mergeIntervals(verticalsByY, 'y'));
+var mergedH = mergeIntervals(horizontalsByX, 'x');
+var mergedV = mergeIntervals(verticalsByY, 'y');
 
-h.print(merged.length, "merged:\n",merged);
+h.print(mergedH.length + mergedV.length, "merged:\n",mergedH.concat(mergedV));
+
+var energized = mergedH.map(i => getLength(i)).sum();
+mergedV.map(v => energized += getLength(v) - mergedH.map(h => cross(h, v)).sum());
+
+h.print("part 1:", energized);
 
 // var testHorizontalsByX = new Map<number, Line[]>();
 
