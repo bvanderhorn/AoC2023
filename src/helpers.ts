@@ -161,20 +161,17 @@ export function overlaps(interval1:number[], interval2:number[]) : boolean {
 export function mergeIntervals(intervals: number[][], mergeConnected:boolean = false) : number[][] {
     // merge overlapping intervals
     var merged: number[][] = [];
-    var current = intervals[0].copy();
-    for (let i=1;i<intervals.length;i++) {
-        var connected = current.max() == intervals[i].min()-1 || current.min() == intervals[i].max()+1;
-        var overlap = overlaps(current, intervals[i]);
-        if (overlap || (mergeConnected && connected)) {
-            current = [Math.min(current.min(), intervals[i].min()), Math.max(current.max(), intervals[i].max())];
-        } else {
-            merged.push(current);
-            current = intervals[i];
+
+    intervals.slice(0,intervals.length-1).map((int, i) => intervals.slice(i+1).map(int2 => {
+        var connected = int.max() == int2.min()-1 || int.min() == int2.max()+1;
+        if (overlaps(int, int2) || (mergeConnected && connected)) {
+            merged.push([Math.min(int[0], int2[0]), Math.max(int[1], int2[1])]);
         }
-    }
-    merged.push(current);
+    }));
+    merged.push(...intervals.filter(int => merged.filter(int2 => overlaps(int, int2)).length == 0));
+    merged = merged.unique();
     
-    return equals2(merged, intervals) ?  merged : mergeIntervals(merged);
+    return equals2(merged, intervals) ?  merged : mergeIntervals(merged, mergeConnected);
 }
 
 export function isInInterval(interval:number[], number:number) : boolean {

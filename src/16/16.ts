@@ -41,7 +41,8 @@ var mergeIntervals = (linesMap: Map<number, Line[]>, dir:string) : Line[] => {
     linesMap.forEach((lines, key) => {
         var intervals = lines.map(l => dir == 'x' ? [l[0][1], l[1][1]] : [l[0][0], l[1][0]]);
         var merged = h.mergeIntervals(intervals, true);
-        newLines.push(...merged.map(m => dir == 'x' ? [[key, m[0]], [key, m[1]]] as Line : [[m[0], key], [m[1], key]] as Line));
+        var newLinesFromKey = merged.map(m => dir == 'x' ? [[key, m[0]], [key, m[1]]] as Line : [[m[0], key], [m[1], key]] as Line)
+        newLines.push(...newLinesFromKey);
     });
     return newLines;
 }
@@ -91,11 +92,14 @@ h.print(lines.length, "lines:\n",lines);
 var horizontals = lines.filter(l => l[0][0] == l[1][0]);
 var horizontalsByX = new Map<number, Line[]>();
 horizontals.map(l => horizontalsByX.get(l[0][0]) == undefined ? horizontalsByX.set(l[0][0], [l]) : horizontalsByX.get(l[0][0])!.push(l));
-h.print(horizontalsByX);
 
 var verticals = lines.filter(l => l[0][1] == l[1][1] && l[0][0] != l[1][0]);
 var verticalsByY = new Map<number, Line[]>();
 verticals.map(l => verticalsByY.get(l[0][1]) == undefined ? verticalsByY.set(l[0][1], [l]) : verticalsByY.get(l[0][1])!.push(l));
+
+// h.print(horizontalsByX.get(7));
+// h.print(mergeIntervals(horizontalsByX, 'x'));
+// h.print(verticalsByY.get(7));
 
 // merge intervals into new set of lines
 var merged = mergeIntervals(horizontalsByX, 'x');
@@ -103,8 +107,9 @@ merged.push(...mergeIntervals(verticalsByY, 'y'));
 
 h.print(merged.length, "merged:\n",merged);
 
-var testHorizontalsByX = new Map<number, Line[]>();
-testHorizontalsByX.set(0, [[[0, 0], [0, 3]], [[0, 4], [0, 6]]]);
-testHorizontalsByX.set(1, [[[1, 0], [1, 2]], [[1, 4], [1, 6]]]);
+// var testHorizontalsByX = new Map<number, Line[]>();
 
-h.print(mergeIntervals(testHorizontalsByX, 'x'));
+// var testIntervals = [[0,0], [2,3], [1,1], [7,7], [4,4], [1,1]];
+// h.print(testIntervals, "=>", h.mergeIntervals(testIntervals, true));
+
+// h.print(mergeIntervals(testHorizontalsByX, 'x'));
