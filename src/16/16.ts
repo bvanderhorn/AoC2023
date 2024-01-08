@@ -47,6 +47,13 @@ var mergeIntervals = (linesMap: Map<number, Line[]>, dir:string) : Line[] => {
     return newLines;
 }
 
+var cross = (a: Line, b: Line) : boolean => {
+    // a and b are horizontal/vertical combination
+    var horizontal = a[0][0] == a[1][0] ? a : b;
+    var vertical = a[0][0] == a[1][0] ? b : a;
+    return horizontal[0][0] <= vertical[0][0] && vertical[0][0] <= horizontal[1][0] && vertical[0][1] <= horizontal[0][1] && horizontal[0][1] <= vertical[1][1];
+}
+
 var contraption = h.read("16", "contraption.txt", "ex").split('');
 // h.print(contraption[0].slice(0,5));
 
@@ -61,7 +68,7 @@ interesting.map(i => intFromY.get(i[1]) == undefined ? intFromY.set(i[1], [i]) :
 var init: Beam = [[0, 0], 'r'];
 var remaining: Beam[] = [init];
 var lines: Line[] = [];
-var v = true; // verbose
+var v = false; // verbose
 var passed : Beam[] = [];
 var iterator = 0;
 while(remaining.length > 0 && iterator < 50){
