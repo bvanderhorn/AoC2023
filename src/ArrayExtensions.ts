@@ -81,30 +81,30 @@ declare global {
         print(j1:string, j2:string) : void;
         print(j1:string, j2:string, sub:number|number[]) : void;
 
-        printc(matches: (x: any) => boolean) : void;
-        printc(matches: (x: any) => boolean, color:string) : void;
-        printc(matches: (x: any) => boolean, color:string,j1:string) : void;
-        printc(matches: (x: any) => boolean, color:string,j1:string, j2:string) : void;
-        printc(matches: (x: any) => boolean, color:string,j1:string, j2:string, sub:number|number[]) : void;
+        printc(matches: (x: any, i:number, j:number) => boolean) : void;
+        printc(matches: (x: any, i:number, j:number) => boolean, color:string) : void;
+        printc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string) : void;
+        printc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string, j2:string) : void;
+        printc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string, j2:string, sub:number|number[]) : void;
 
         string() : string;
         string(j1:string) : string;
         string(j1:string, j2:string) : string;
         string(j1:string, j2:string, sub:number|number[]) : string;
 
-        stringc(matches: (x: any) => boolean, color:string) : string;
-        stringc(matches: (x: any) => boolean, color:string,j1:string) : string;
-        stringc(matches: (x: any) => boolean, color:string,j1:string, j2:string) : string;
-        stringc(matches: (x: any) => boolean, color:string,j1:string, j2:string, sub:number|number[]) : string;
+        stringc(matches: (x: any, i:number, j:number) => boolean, color:string) : string;
+        stringc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string) : string;
+        stringc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string, j2:string) : string;
+        stringc(matches: (x: any, i:number, j:number) => boolean, color:string,j1:string, j2:string, sub:number|number[]) : string;
     }
 
     interface String {
         get(index: number) : string;
         slice2(start:number, end:number) : string;
-        stringc(matches: (x: any) => boolean) : string;
-        stringc(matches: (x: any) => boolean, color:string) : string;
-        printc(matches: (x: any) => boolean) : void;
-        printc(matches: (x: any) => boolean, color:string) : void;
+        stringc(matches: (x: any, i:number) => boolean) : string;
+        stringc(matches: (x: any, i:number) => boolean, color:string) : string;
+        printc(matches: (x: any, i:number) => boolean) : void;
+        printc(matches: (x: any, i:number) => boolean, color:string) : void;
         map(make: (x:string, i:number) => any) : any[];
     }
 
@@ -161,7 +161,7 @@ if(!Array.prototype.printc) {
 	enumerable: false,
 	writable:false,
 	configurable: false,
-	value: function printc(this: any[], matches:(x:any) => boolean, color:string = 'r', j1:string = '',j2:string='\n', sub: number | number[]) : void {
+	value: function printc(this: any[], matches:(x:any, i:number, j:number) => boolean, color:string = 'r', j1:string = '',j2:string='\n', sub: number | number[]) : void {
             console.log(this.stringc(matches,color,j1,j2, sub));
         }
     });
@@ -173,7 +173,7 @@ if (!String.prototype.printc) {
         enumerable: false,
         writable: false,
         configurable: false,
-        value: function printc(this: string, matches:(x:any) => boolean, color:string = 'r') : void {
+        value: function printc(this: string, matches:(x:any, i:number) => boolean, color:string = 'r') : void {
             console.log(this.stringc(matches,color));
         }
     });
@@ -185,17 +185,17 @@ if(!Array.prototype.stringc) {
 	enumerable: false,
 	writable:false,
 	configurable: false,
-	value: function stringc(this: any[], matches:(x:any) => boolean, color:string, j1:string = '', j2:string='\n', sub: number|number[] = 0) : string {
+	value: function stringc(this: any[], matches:(x:any, i:number, j:number) => boolean, color:string, j1:string = '', j2:string='\n', sub: number|number[] = 0) : string {
             var end = cOff;
             var start:string = colorValueArray[colorNameArray.indexOf(color)];
             if (this[0] instanceof Array) {
-                if (sub == 0) return this.map((l:any[]) => l.map(x=> matches(x) ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
-                if (typeof sub == 'number') return this.slice(0,sub).map((l:any[]) => l.slice(0,sub).map(x => matches(x) ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
-                return this.slice(0,sub[0]).map((l:any[]) => l.slice(0,sub[1]).map(x => matches(x) ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
+                if (sub == 0) return this.map((l:any[], i:number) => l.map((x:any, j:number) => matches(x,i,j) ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
+                if (typeof sub == 'number') return this.slice(0,sub).map((l:any[], i:number) => l.slice(0,sub).map((x:any, j:number) => matches(x,i,j) ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
+                return this.slice(0,sub[0]).map((l:any[], i:number) => l.slice(0,sub[1]).map((x:any, j:number) => matches(x,i,j)  ? `${start}${x}${end}`: `${x}`).join(j1)).join(j2);
             } else {
-                if (sub == 0) return this.map(x=> matches(x) ? `${start}${x}${end}`: `${x}`).join(j1);
-                if (typeof sub == 'number') return this.slice(0,sub).map(x => matches(x) ? `${start}${x}${end}`: `${x}`).join(j1);
-                return this.slice(0,sub[0]).map(x => matches(x) ? `${start}${x}${end}`: `${x}`).join(j1);
+                if (sub == 0) return this.map((x:any,i:number) => matches(x , i, -1)  ? `${start}${x}${end}`: `${x}`).join(j1);
+                if (typeof sub == 'number') return this.slice(0,sub).map((x:any,i:number) => matches(x,i,-1)  ? `${start}${x}${end}`: `${x}`).join(j1);
+                return this.slice(0,sub[0]).map((x:any,i:number) => matches(x, i, -1)  ? `${start}${x}${end}`: `${x}`).join(j1);
             }
             
         }
@@ -208,10 +208,10 @@ if (!String.prototype.stringc) {
         enumerable: false,
         writable: false,
         configurable: false,
-        value: function stringc(this: string, matches:(x:any) => boolean, color:string = 'r') : string {
+        value: function stringc(this: string, matches:(x:any, i:number) => boolean, color:string = 'r') : string {
             var end = cOff;
             var start:string = colorValueArray[colorNameArray.indexOf(color)];
-            return this.split('').map(x=> matches(x) ? `${start}${x}${end}`: `${x}`).join('');
+            return this.split('').map((x:any, i:number) => matches(x,i) ? `${start}${x}${end}`: `${x}`).join('');
         }
     });
 }

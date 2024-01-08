@@ -3,7 +3,7 @@ import * as h from '../helpers';
 type Beam = [[number, number], string];
 type Line = [[number, number], [number, number]];
 
-var progress = (beam: Beam) : Beam[] => {
+var progress = (beam: Beam, v:boolean = false) : Beam[] => {
     var [[x,y], dir] = beam;
     var nb = "";
     var tile = contraption[x][y];
@@ -15,9 +15,10 @@ var progress = (beam: Beam) : Beam[] => {
     if (tile == '\\') nb = dir == 'r' ? 'd' : dir == 'l' ? 'u' : dir == 'u' ? 'l' : 'r';
     if (tile == '/') nb = dir == 'r' ? 'u' : dir == 'l' ? 'd' : dir == 'u' ? 'r' : 'l';
     var nbs = nb.map( n => h.getnb([x,y], contraption.length-1, contraption[0].length-1, n)[0]);
+    var nbBeams = nb.map((n:string,i:number) => [nbs[i], n] as Beam).filter(b => b[0] != undefined);
 
-	//h.print(beam, tile, "=>", nb, "=>", nbs);
-    return nb.map((n:string,i:number) => [nbs[i], n] as Beam).filter(b => b[0] != undefined);
+	h.printv(v,beam, tile, "=>", nb, "=>", nbBeams);
+    return nbBeams;
 }
 
 var getNextInteresting = (beam: Beam) : Beam | undefined => {
@@ -50,12 +51,26 @@ var mergeIntervals = (linesMap: Map<number, Line[]>, dir:string) : Line[] => {
 var cross = (a: Line, b: Line) : number => {
     // a and b are horizontal/vertical combination
     var hor = a[0][0] == a[1][0] ? a : b;
+    var hx = hor[0][0];
     var ver = a[0][0] == a[1][0] ? b : a;
-    return hor[0][0] <= ver[0][0] && ver[0][0] <= hor[1][0] && ver[0][1] <= hor[0][1] && hor[0][1] <= ver[1][1] 
+    var vy = ver[0][1];
+    var [hmin, hmax] = [hor[0][1], hor[1][1]].sort((a,b) => a-b);
+    var [vmin, vmax] = [ver[0][0], ver[1][0]].sort((a,b) => a-b);
+    return hmin <= vy && vy <= hmax && vmin <= hx && hx <= vmax
         ? 1 : 0;
 }
 
 var getLength = (line: Line) : number => Math.abs(line[0][0] - line[1][0]) + Math.abs(line[0][1] - line[1][1]) + 1;
+
+var isInLine = (line: Line, point: [number, number]) : boolean => {
+    var [[x1,y1], [x2,y2]] = line;
+    var [xmin, xmax] = [x1,x2].sort((a,b) => a-b);
+    var [ymin, ymax] = [y1,y2].sort((a,b) => a-b);
+    var [x,y] = point;
+    return x1 == x2 
+        ? x == x1 &&  ymin <= y && y <= ymax 
+        : y == y1 && xmin <= x && x <= xmax;
+}
 
 var getEnergized = (init: Beam, v: boolean = false) : number => {
     // find all the lines between interesting points and/or the edges of the contraption
@@ -66,7 +81,8 @@ var getEnergized = (init: Beam, v: boolean = false) : number => {
     while(remaining.length > 0){
         iterator++;
         var cur = remaining.shift()!;
-        h.printv(v, "cur:", cur,", remaining:", remaining.length);
+        passed.push(cur);
+        h.printv(v, "cur:", cur,", remaining:", remaining, "passed:", passed);
         var next = getNextInteresting(cur);
         h.printv(v, "next:", next);
         if (next == undefined) {
@@ -78,10 +94,9 @@ var getEnergized = (init: Beam, v: boolean = false) : number => {
 
         lines.push([cur[0], next[0]]);
 
-        var afterNext = progress(next).filter(a => !passed.includes2(a) && !remaining.includes2(a));
+        var afterNext = progress(next,v).filter(a => !passed.includes2(a) && !remaining.includes2(a));
         h.printv(v, "afterNext:", afterNext);
         remaining.push(...afterNext);
-        passed.push(cur);
     }
 
     // separate lines into vertical and horizontal
@@ -96,12 +111,22 @@ var getEnergized = (init: Beam, v: boolean = false) : number => {
     // merge intervals into new set of lines
     var mergedH = mergeIntervals(horizontalsByX, 'x');
     var mergedV = mergeIntervals(verticalsByY, 'y');
+    var allMerged = mergedH.concat(mergedV);
 
-    // h.print(mergedH.length + mergedV.length, "merged:\n",mergedH.concat(mergedV));
+    h.printv(v, allMerged.length, "merged:\n",allMerged);
 
     // calculate energized: all horizontal points, plus all vertical points minus all crossings between horizontals and verticals
-    var energized = mergedH.map(i => getLength(i)).sum();
-    mergedV.map(v => energized += getLength(v) - mergedH.map(h => cross(h, v)).sum());
+    var energized = allMerged.map(i => getLength(i)).sum();
+    // h.printv(v, "base energized:", energized);
+    var crossCorrection = mergedV.map(v => mergedH.map(h => cross(h,v)).sum()).sum();
+    // h.printv(v, "cross correction:", crossCorrection);
+    energized -= crossCorrection;
+    // h.printv(v,"corrected energized:", energized);
+
+    // h.printv(v, "\nhorizontal:\n", contraption.stringc((x,i,j) => mergedH.filter(l => isInLine(l, [i,j])).length > 0, 'c'), "\n")
+    // h.printv(v, "\nvertical:\n", contraption.stringc((x,i,j) => mergedV.filter(l => isInLine(l, [i,j])).length > 0, 'm'), "\n")
+
+    // h.printv(v, "\nenergized:\n", contraption.stringc((x,i,j) => allMerged.filter(l => isInLine(l, [i,j])).length > 0, 'r'), "\n")
 
     return energized;
 }
@@ -130,5 +155,5 @@ var inits : Beam[] = [
     horEdge.map(e => [[contraption.length-1, e], 'u'] as Beam)
 ].flat();
 
-// var energizeds = inits.mapWithProgress(i => getEnergized(i), 100);
-// h.print("part 2:", energizeds.max());
+var energizeds = inits.mapWithProgress(i => getEnergized(i));
+h.print("part 2:", energizeds.max());
