@@ -158,13 +158,15 @@ export function overlaps(interval1:number[], interval2:number[]) : boolean {
     return interval1.min() <= interval2.max() && interval1.max() >= interval2.min(); 
 }
 
-export function mergeIntervals(intervals: number[][]) : number[][] {
+export function mergeIntervals(intervals: number[][], mergeConnected:boolean = false) : number[][] {
     // merge overlapping intervals
     var merged: number[][] = [];
     var current = intervals[0].copy();
     for (let i=1;i<intervals.length;i++) {
-        if (overlaps(current, intervals[i])) {
-            current = [Math.min(current[0], intervals[i][0]), Math.max(current[1], intervals[i][1])];
+        var connected = current.max() == intervals[i].min()-1 || current.min() == intervals[i].max()+1;
+        var overlap = overlaps(current, intervals[i]);
+        if (overlap || (mergeConnected && connected)) {
+            current = [Math.min(current.min(), intervals[i].min()), Math.max(current.max(), intervals[i].max())];
         } else {
             merged.push(current);
             current = intervals[i];
