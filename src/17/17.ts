@@ -9,7 +9,7 @@ var setToNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
     else next[index][1].push(coor);
 }
 
-var deleteFromNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
+var deleteFromNextIfPresent = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
     var index = next.findIndex(n => n[0] == dist);
     if (index != -1) {
         var nextList = next[index][1];
@@ -19,8 +19,6 @@ var deleteFromNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void
 }
 
 var bmap = h.read("17", "map.txt", "ex").split('').tonum();
-
-// bmap.printc(x => x == 3, 'c');
 
 // Dijkstra with weighted distances
 // input
@@ -50,12 +48,14 @@ while(next.length > 0){
         for (const n of nb) {
             var nInt = coorToInt(n);
             var nDist = dist + bmap[n[0]][n[1]];
+
+            // set or update next if shorter or not present
             if (next2.has(nInt)) {
                 // update if shorter
-                var [oldFromNb, oldDist] = next2.get(nInt)!;
+                var [_, oldDist] = next2.get(nInt)!;
                 if (nDist < oldDist) {
                     next2.set(nInt, [curInt, nDist]);
-                    deleteFromNext(n, oldDist, next);
+                    deleteFromNextIfPresent(n, oldDist, next);
                     setToNext(n, nDist, next);
                 }
             } else {
@@ -71,8 +71,6 @@ while(next.length > 0){
     }
 }
 
-// h.print(visited);
-
 // get shortest path and dist from init to goal
 var goalInt = coorToInt(goal);
 var dist = visited.get(goalInt)![1];
@@ -86,4 +84,4 @@ while(cur != coorToInt(init)){
 
 // print shortest path
 h.print("shortest path from", init, "to", goal, "is", dist, "long");
-bmap.printc((x, i, j) => intPath.includes(coorToInt([i,j])), 'm');
+bmap.printc((_, i, j) => intPath.includes(coorToInt([i,j])), 'm');
