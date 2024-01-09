@@ -1,8 +1,8 @@
 import * as h from '../helpers';
 
 type Coor = [number, number];
-var coorToInt = (coor: Coor, gridSizeX: number) : number => coor[0] + coor[1] *gridSizeX;
-var intToCoor = (int: number, gridSizeX: number) : Coor => [int % gridSizeX, Math.floor(int / gridSizeX)];
+var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
+var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var setToNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
     var index = next.findIndex(n => n[0] == dist);
     if (index == -1) next.push([dist, [coor]]);
@@ -20,14 +20,20 @@ var deleteFromNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void
 
 var bmap = h.read("17", "map.txt", "ex").split('').tonum();
 
-bmap.printc(x => x == 3, 'c');
+// bmap.printc(x => x == 3, 'c');
 
 // Dijkstra with weighted distances
-var xsize = bmap[0].length;
-var next : [number, Coor[]][] = [[0, [[0, 0]]]];
+// input
+var xsize = bmap.length;
+var init = [0, 0] as Coor;
+var goal = [bmap.length-1, bmap[0].length-1] as Coor;
+
+// init
+var next : [number, Coor[]][] = [[0, [init]]]; // [dist, [coors]][]
 var next2 = new Map<number, [number, number]>(); // coor int => [from nb int, dist]
 var visited = new Map<number, [number, number]>(); // coor int => [from nb int, dist]
 
+// find all distances from init for all nodes
 while(next.length > 0){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
@@ -35,14 +41,14 @@ while(next.length > 0){
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
-        var curInt = coorToInt(cur, xsize);
+        var curInt = coorToInt(cur);
 
         // get unvisited neighbors
-        var nb = h.getnb(cur, bmap.length-1, bmap[0].length-1).filter(n => !visited.has(coorToInt(n as Coor, xsize))) as Coor[];
+        var nb = h.getnb(cur, bmap.length-1, bmap[0].length-1).filter(n => !visited.has(coorToInt(n as Coor))) as Coor[];
 
         // add to next or update if distance shorter than current
         for (const n of nb) {
-            var nInt = coorToInt(n, xsize);
+            var nInt = coorToInt(n);
             var nDist = dist + bmap[n[0]][n[1]];
             if (next2.has(nInt)) {
                 // update if shorter
@@ -65,4 +71,19 @@ while(next.length > 0){
     }
 }
 
-h.print(visited);
+// h.print(visited);
+
+// get shortest path and dist from init to goal
+var goalInt = coorToInt(goal);
+var dist = visited.get(goalInt)![1];
+var intPath = [goalInt];
+var cur = goalInt;
+while(cur != coorToInt(init)){
+    var [fromNb, _] = visited.get(cur)!;
+    intPath.unshift(fromNb);
+    cur = fromNb;
+}
+
+// print shortest path
+h.print("shortest path from", init, "to", goal, "is", dist, "long");
+bmap.printc((x, i, j) => intPath.includes(coorToInt([i,j])), 'm');
