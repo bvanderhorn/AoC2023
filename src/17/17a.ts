@@ -5,7 +5,8 @@ import * as h from '../helpers';
 type Coor = [number, number];
 class Node {
     public loc: number; // location integer
-    public id: string; // unique id
+    public fam: string; // family, combination of dir and loc
+    public id: string; // unique id, combination of pot, dir and loc
 
     public constructor(
         public dist: number, // distance from init
@@ -15,7 +16,8 @@ class Node {
         public from: Node | undefined = undefined // will be undefined for init
         ) {
         this.loc = coorToInt(coor);
-        this.id = [pot, dir, this.loc].join('');
+        this.fam = [dir, this.loc].join('');
+        this.id = pot + this.fam;
     }
 
     public get rank (): number { return this.dist*10 + this.pot; }
@@ -33,7 +35,32 @@ class Visited {
     public set (n: Node) : void {
         var list = this.value.get(n.loc);
         if (list == undefined) this.value.set(n.loc, [n]);
-        else list.push(n);
+        else {
+            var index = list.findIndex(nl => nl.id == n.id);
+            if (index == -1) list.push(n);
+            else list[index] = n;
+        }
+    }
+
+    public get (n: Node) : Node | undefined {
+        var list = this.value.get(n.loc);
+        if (list == undefined) return undefined;
+        else return list.find(nl => nl.id == n.id);
+    }
+
+    public delete (n: Node) : void {
+        var list = this.value.get(n.loc);
+        if (list == undefined) return;
+        else {
+            var index = list.findIndex(nl => nl.id == n.id);
+            if (index != -1) list.splice(index, 1);
+        }
+    }
+
+    public getFamily (n: Node) : Node[] {
+        var list = this.value.get(n.loc);
+        if (list == undefined) return [];
+        else return list.filter(nl => nl.fam == n.fam);
     }
 }
 
@@ -66,7 +93,7 @@ var startN = new Node(0, 0, '?', start);
 
 // init
 var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
-var next2 = new Map<string, Node>(); // id => Node
+var next2 = new Visited(); // loc => Nodes
 
 var visited = new Visited(); // loc => Nodes
 
@@ -109,24 +136,24 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
         for (const n of nb) {
 
             // set or update next if shorter or not present
-            if (next2.has(n.id)) {
+            if (next2.has(n)) {
                 // update if shorter
-                var oldn = next2.get(n.id)!;
+                var oldn = next2.get(n)!;
                 if (n.dist < oldn.dist) {
-                    next2.set(n.id, n);
+                    next2.set(n);
                     deleteFromNextIfPresent(oldn, next);
                     setToNext(n, next);
                 }
             } else {
                 // add to next
-                next2.set(n.id, n);
+                next2.set(n);
                 setToNext(n, next);
             }
         }
 
         // add cur to visited
         visited.set(cur);
-        next2.delete(cur.id);
+        next2.delete(cur);
 
         // check if goal
         if (cur.loc == coorToInt(goal)) {
