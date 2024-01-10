@@ -1,5 +1,7 @@
 import * as h from '../helpers';
 
+// Dijkstra with weighted distances (but without max-3-straight-steps rule)
+
 type Coor = [number, number];
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];

@@ -1,5 +1,7 @@
 import * as h from '../helpers';
 
+// Dijkstra with weighted distances and max-3-straight-steps rule
+
 type Coor = [number, number];
 class Node {
     public loc: number; // location integer
@@ -73,6 +75,7 @@ var goalN: Node | undefined = undefined;
 var v = false; // verbose
 var iterator = 0;
 var haltloc = 166;
+console.time("dijkstra");
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
@@ -134,6 +137,7 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
     // break if goal
     if (goalN != undefined) break;
 }
+console.timeEnd("dijkstra");
 
 // get shortest path and dist from init to goal
 if (goalN == undefined) throw "no path found";
