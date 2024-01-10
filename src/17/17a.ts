@@ -75,10 +75,11 @@ var iterator = 0;
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
-    var [dist, curs] = next.shift()!;
+    var [_, curs] = next.shift()!;
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
+        var dist = cur.dist;
         h.printv(v,"step", iterator++, "\ndist", dist, "\ncur", cur.id, 
             "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
             "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
