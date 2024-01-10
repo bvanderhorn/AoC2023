@@ -1,6 +1,21 @@
 import * as h from '../helpers';
 
 type Coor = [number, number];
+class Node {
+    public value: [number, number, string, number]; // [distance from init, potential, direction, location integer]
+    public from: Node | undefined; // will be undefined for init
+
+    public constructor(
+        public dist: number, // distance from init
+        public pot: number, // potential (number of times the direction has been this before and including this time; max 3)
+        public dir: string, // direction
+        public loc: number // location integer
+        ) {
+        this.value = [dist, pot, dir, loc];
+    }
+
+    public toString() : string { return `${this.dist}${this.pot}${this.dir}${this.loc}`}
+}
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var setToNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
@@ -20,7 +35,7 @@ var deleteFromNextIfPresent = (coor: Coor, dist: number, next: [number, Coor[]][
 
 var bmap = h.read("17", "map.txt").split('').tonum();
 
-// Fast Dijkstra with weighted distances
+// Dijkstra with weighted distances
 // input
 var init = [0, 0] as Coor;
 var goal = [bmap.length-1, bmap[0].length-1] as Coor;
