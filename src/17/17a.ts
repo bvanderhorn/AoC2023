@@ -82,7 +82,7 @@ var setToNext = (n: Node, next: [number, Node[]][]) : void => {
     else next[index][1].push(n);
 }
 
-var bmap = h.read("17", "map.txt", "ex").split('').tonum();
+var bmap = h.read("17", "map.txt").split('').tonum();
 
 // Fast Dijkstra (because using Maps) with weighted distances
 // input
@@ -115,13 +115,15 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
             var henk = 1;
         }
         var dist = cur.dist;
-        h.printv(v,"step", iterator++, "\ndist", dist, "\ncur", cur.id, 
+        h.printv(v,"step", iterator, "\ndist", dist, "\ncur", cur.id, 
             "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
             "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
+        
         // --- get unvisited neighbors ----
         // get all neighbors
         var nbstring = cur.dir == '?' ? 'udlr' : cur.dir == 'u' ? 'ulr' : cur.dir == 'd' ? 'dlr' : cur.dir == 'l' ? 'lud' : 'rud'; // no 180 degree turns allowed!!
         var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1, nbstring) as Coor[];
+        
         // convert to nodes
         var nb: Node[] = allNbCoor.map(c => {
             var dir = getDir(cur.coor, c);
@@ -130,9 +132,13 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
         });
         // filter on pot <= 3 and unvisited
         nb = nb.filter(n => n.pot <= 3 && !visited.has(n)); // <= implementation of max-3-straight-steps rule!!
+
+        // filter on no family members in next of visited with lower pot and lower dist
+        nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
+
         h.printv(v, "nb", nb.map(n => n.id));
 
-        // add to next or update if distance shorter than current
+        // add to next or update if distance shorter than existing with same id
         for (const n of nb) {
 
             // set or update next if shorter or not present
@@ -160,6 +166,8 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
             goalN = cur;
             break;
         }
+        if (iterator % 10000 == 0) h.print("iteration", iterator);
+        iterator++;
     }
 
     // break if goal
@@ -178,4 +186,4 @@ while(cur.id != startN.id){
 
 // print shortest path
 h.print("shortest path from", start, "to", goal, "is", goalN.dist, "long");
-bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
+// bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
