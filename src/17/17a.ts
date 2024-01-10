@@ -25,9 +25,23 @@ var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var getDir = (from: Coor, to: Coor) : string => from[0] == to[0] ? (from[1] < to[1] ? 'r' : 'l') : (from[0] < to[0] ? 'd' : 'u');
 
+var deleteFromNextIfPresent = (n: Node, next: [number, Node[]][]) : void => {
+    var index = next.findIndex(nl => nl[0] == n.rank);
+    if (index != -1) {
+        var nextList = next[index][1];
+        var nodeIndex = nextList.findIndex(c => c.id == n.id);
+        if (nodeIndex != -1) nextList.splice(nodeIndex, 1);
+    }
+}
+var setToNext = (n: Node, next: [number, Node[]][]) : void => {
+    var index = next.findIndex(nl => nl[0] == n.rank);
+    if (index == -1) next.push([n.rank, [n]]);
+    else next[index][1].push(n);
+}
+
 var bmap = h.read("17", "map.txt").split('').tonum();
 
-// Dijkstra with weighted distances
+// Fast Dijkstra (because using Maps) with weighted distances
 // input
 var start = [0, 0] as Coor;
 var goal = [bmap.length-1, bmap[0].length-1] as Coor;
@@ -60,32 +74,28 @@ while(next.length > 0){
         // filter on pot <= 3 and unvisited
         nb = nb.filter(n => n.pot <= 3 && !visited.has(n.id));
 
-        // --- continue here ----
-
         // add to next or update if distance shorter than current
         for (const n of nb) {
-            var nInt = coorToInt(n);
-            var nDist = dist + bmap[n[0]][n[1]];
 
             // set or update next if shorter or not present
-            if (next2.has(nInt)) {
+            if (next2.has(n.id)) {
                 // update if shorter
-                var [_, oldDist] = next2.get(nInt)!;
-                if (nDist < oldDist) {
-                    next2.set(nInt, [curInt, nDist]);
-                    deleteFromNextIfPresent(n, oldDist, next);
-                    setToNext(n, nDist, next);
+                var oldn = next2.get(n.id)!;
+                if (n.dist < oldn.dist) {
+                    next2.set(n.id, n);
+                    deleteFromNextIfPresent(oldn, next);
+                    setToNext(n, next);
                 }
             } else {
                 // add to next
-                next2.set(nInt, [curInt, nDist]);
-                setToNext(n, nDist, next);
+                next2.set(n.id, n);
+                setToNext(n, next);
             }
         }
 
         // add cur to visited
-        visited.set(curInt, next2.get(curInt)!);
-        next2.delete(curInt);
+        visited.set(cur.id, cur);
+        next2.delete(cur.id);
     }
 }
 
