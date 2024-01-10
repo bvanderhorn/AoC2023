@@ -82,6 +82,7 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
     var [_, curs] = next.shift()!;
 
     // get and inspect neighbors for each cur
+    curs.sort((n1, n2) => n2.loc - n1.loc); // sort on loc to treat the closest to the goal first
     for (const cur of curs) {
         if (cur.loc == haltloc) {
             var henk = 1;
