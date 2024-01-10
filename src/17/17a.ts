@@ -72,6 +72,7 @@ var visited = new Visited(); // loc => Nodes
 var goalN: Node | undefined = undefined;
 var v = false; // verbose
 var iterator = 0;
+var haltloc = 166;
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
@@ -79,13 +80,17 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
+        if (cur.loc == haltloc) {
+            var henk = 1;
+        }
         var dist = cur.dist;
         h.printv(v,"step", iterator++, "\ndist", dist, "\ncur", cur.id, 
             "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
             "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
         // --- get unvisited neighbors ----
         // get all neighbors
-        var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1) as Coor[];
+        var nbstring = cur.dir == '?' ? 'udlr' : cur.dir == 'u' ? 'ulr' : cur.dir == 'd' ? 'dlr' : cur.dir == 'l' ? 'lud' : 'rud'; // no 180 degree turns allowed!!
+        var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1, nbstring) as Coor[];
         // convert to nodes
         var nb: Node[] = allNbCoor.map(c => {
             var dir = getDir(cur.coor, c);
