@@ -21,6 +21,22 @@ class Node {
     public get rank (): number { return this.dist*10 + this.pot; }
 }
 
+class Visited {
+    public value : Map<number, Node[]> = new Map<number, Node[]>(); // loc => Nodes
+    constructor() {}
+    public has (n:Node) : boolean { 
+        var list = this.value.get(n.loc);
+        if (list == undefined) return false;
+        else return list.map(nl => nl.id).includes(n.id);
+     }
+
+    public set (n: Node) : void {
+        var list = this.value.get(n.loc);
+        if (list == undefined) this.value.set(n.loc, [n]);
+        else list.push(n);
+    }
+}
+
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var getDir = (from: Coor, to: Coor) : string => from[0] == to[0] ? (from[1] < to[1] ? 'r' : 'l') : (from[0] < to[0] ? 'd' : 'u');
@@ -51,18 +67,23 @@ var startN = new Node(0, 0, '?', start);
 // init
 var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
 var next2 = new Map<string, Node>(); // id => Node
-var visited = new Map<string, Node>(); // id => Node
+
+var visited = new Visited(); // loc => Nodes
 
 // find all distances from init for all nodes
 var goalN: Node | undefined = undefined;
-while(next.length > 0){
+var v = true; // verbose
+var iterator = 0;
+while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
     var [dist, curs] = next.shift()!;
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
-
+        h.printv(v,"iterator", iterator++, "\ndist", dist, "\ncur", cur.id, 
+            "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
+            "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
         // --- get unvisited neighbors ----
         // get all neighbors
         var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1) as Coor[];
@@ -73,7 +94,8 @@ while(next.length > 0){
             return new Node(dist + bmap[c[0]][c[1]], pot, dir, c, cur);
         });
         // filter on pot <= 3 and unvisited
-        nb = nb.filter(n => n.pot <= 3 && !visited.has(n.id)); // <= implementation of max-3-straight-steps rule!!
+        nb = nb.filter(n => n.pot <= 3 && !visited.has(n)); // <= implementation of max-3-straight-steps rule!!
+        h.printv(v, "nb", nb.map(n => n.id));
 
         // add to next or update if distance shorter than current
         for (const n of nb) {
@@ -95,7 +117,7 @@ while(next.length > 0){
         }
 
         // add cur to visited
-        visited.set(cur.id, cur);
+        visited.set(cur);
         next2.delete(cur.id);
 
         // check if goal
