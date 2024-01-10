@@ -4,46 +4,40 @@ type Coor = [number, number];
 class Node {
     public value: [number, number, string, number]; // [distance from init, potential, direction, location integer]
     public from: Node | undefined; // will be undefined for init
+    public loc: number; // location integer
+    public id: string; // unique id
 
     public constructor(
         public dist: number, // distance from init
         public pot: number, // potential (number of times the direction has been this before and including this time; max 3)
-        public dir: string, // direction
-        public loc: number // location integer
+        public dir: string, // direction, one of 'udlr'
+        public coor: Coor  // coordinates [x, y]
         ) {
-        this.value = [dist, pot, dir, loc];
+        this.loc = coorToInt(coor);
+        this.value = [dist, pot, dir, this.loc];
+        this.id = this.value.join('');
     }
 
-    public toString() : string { return `${this.dist}${this.pot}${this.dir}${this.loc}`}
+    public get rank (): number { return this.dist*10 + this.pot; }
 }
+
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
-var setToNext = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
-    var index = next.findIndex(n => n[0] == dist);
-    if (index == -1) next.push([dist, [coor]]);
-    else next[index][1].push(coor);
-}
-
-var deleteFromNextIfPresent = (coor: Coor, dist: number, next: [number, Coor[]][]) : void => {
-    var index = next.findIndex(n => n[0] == dist);
-    if (index != -1) {
-        var nextList = next[index][1];
-        var coorIndex = nextList.findIndex(c => h.equals2(c, coor));
-        if (coorIndex != -1) nextList.splice(coorIndex, 1);
-    }
-}
+var getDir = (from: Coor, to: Coor) : string => from[0] == to[0] ? (from[1] < to[1] ? 'r' : 'l') : (from[0] < to[0] ? 'd' : 'u');
 
 var bmap = h.read("17", "map.txt").split('').tonum();
 
 // Dijkstra with weighted distances
 // input
-var init = [0, 0] as Coor;
+var start = [0, 0] as Coor;
 var goal = [bmap.length-1, bmap[0].length-1] as Coor;
 
+var startN = new Node(0, 0, '?', start);
+
 // init
-var next : [number, Coor[]][] = [[0, [init]]]; // [dist, [coors]][]
-var next2 = new Map<number, [number, number]>(); // coor int => [from nb int, dist]
-var visited = new Map<number, [number, number]>(); // coor int => [from nb int, dist]
+var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
+var next2 = new Map<string, Node>(); // id => Node
+var visited = new Map<string, Node>(); // id => Node
 
 // find all distances from init for all nodes
 while(next.length > 0){
@@ -53,10 +47,20 @@ while(next.length > 0){
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
-        var curInt = coorToInt(cur);
 
-        // get unvisited neighbors
-        var nb = h.getnb(cur, bmap.length-1, bmap[0].length-1).filter(n => !visited.has(coorToInt(n as Coor))) as Coor[];
+        // --- get unvisited neighbors ----
+        // get all neighbors
+        var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1) as Coor[];
+        // convert to nodes
+        var nb: Node[] = allNbCoor.map(c => {
+            var dir = getDir(cur.coor, c);
+            var pot = cur.dir == dir ? cur.pot + 1 : 1;
+            return new Node(dist + bmap[c[0]][c[1]], pot, dir, c);
+        });
+        // filter on pot <= 3 and unvisited
+        nb = nb.filter(n => n.pot <= 3 && !visited.has(n.id));
+
+        // --- continue here ----
 
         // add to next or update if distance shorter than current
         for (const n of nb) {
@@ -90,12 +94,12 @@ var goalInt = coorToInt(goal);
 var dist = visited.get(goalInt)![1];
 var intPath = [goalInt];
 var cur = goalInt;
-while(cur != coorToInt(init)){
+while(cur != coorToInt(start)){
     var [fromNb, _] = visited.get(cur)!;
     intPath.unshift(fromNb);
     cur = fromNb;
 }
 
 // print shortest path
-h.print("shortest path from", init, "to", goal, "is", dist, "long");
+h.print("shortest path from", start, "to", goal, "is", dist, "long");
 bmap.printc((_, i, j) => intPath.includes(coorToInt([i,j])), 'm');
