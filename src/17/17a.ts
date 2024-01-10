@@ -2,7 +2,6 @@ import * as h from '../helpers';
 
 type Coor = [number, number];
 class Node {
-    public value: [number, number, string, number]; // [distance from init, potential, direction, location integer]
     public loc: number; // location integer
     public id: string; // unique id
 
@@ -14,8 +13,7 @@ class Node {
         public from: Node | undefined = undefined // will be undefined for init
         ) {
         this.loc = coorToInt(coor);
-        this.value = [dist, pot, dir, this.loc];
-        this.id = this.value.join('');
+        this.id = [pot, dir, this.loc].join('');
     }
 
     public get rank (): number { return this.dist*10 + this.pot; }
@@ -72,7 +70,7 @@ var visited = new Visited(); // loc => Nodes
 
 // find all distances from init for all nodes
 var goalN: Node | undefined = undefined;
-var v = true; // verbose
+var v = false; // verbose
 var iterator = 0;
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
@@ -81,7 +79,7 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
 
     // get and inspect neighbors for each cur
     for (const cur of curs) {
-        h.printv(v,"iterator", iterator++, "\ndist", dist, "\ncur", cur.id, 
+        h.printv(v,"step", iterator++, "\ndist", dist, "\ncur", cur.id, 
             "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
             "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
         // --- get unvisited neighbors ----
