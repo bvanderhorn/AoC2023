@@ -3,7 +3,6 @@ import { cOff, colorNameArray, colorValueArray , equals2, whiteBlock, grayBlock}
 export * from "./ArrayExtensions";
 
 const sourceFolder = '../../src/';
-const exampleString = 'example_';
 
 export function stringify(object: any) : string {
     return JSON.stringify(object, null, 4);
@@ -21,8 +20,11 @@ export function write(folder:string, filename:string, content:string, options:st
 export function simpleRead(folder:string, filename:string, options:string ='') : string {
     // options
     const example: boolean = options.includes('ex');
+    var exNumberMatch = options.match(/\d+/g);
+    var exNumber = -1;
+    if (exNumberMatch != null) exNumber = +exNumberMatch[0];
 
-    const fn = (example ? exampleString : '') + filename;
+    const fn = (example ? ('example' + (exNumber >= 0 ? exNumber.toString() : '') + '_') : '') + filename;
     print(' reading file: ',folder,'/', fn);
     return fs.readFileSync(sourceFolder + folder + '/' + fn, 'utf8');
 }
