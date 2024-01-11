@@ -131,7 +131,7 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
         // filter on pot <= 3 and unvisited
         nb = nb.filter(n => n.pot <= 3 && !visited.has(n)); // <= implementation of max-3-straight-steps rule!!
 
-        // filter on no family members in next of visited with lower pot and lower dist
+        // filter on no family members in next or visited with lower pot and lower dist
         nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
 
         // add to next or update if distance shorter than existing with same id
@@ -181,4 +181,4 @@ while(cur.id != startN.id){
 
 // print shortest path
 h.print("shortest path from", start, "to", goal, "is", goalN.dist, "long");
-// bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
+bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
