@@ -84,7 +84,22 @@ var setToNext = (n: Node, next: [number, Node[]][]) : void => {
     else next[index][1].push(n);
 }
 
+var checkWalls = (cur:Node, dirs: string) : string => {
+    // if direction changes: check if walls are not within 4 steps
+    var [x, y] = cur.coor;
+    return dirs.split('').filter(d => {
+        if (d == cur.dir) return true;
+        if (d == 'u') return x > 3;
+        if (d == 'd') return x < bmap.length-4;
+        if (d == 'l') return y > 3;
+        if (d == 'r') return y < bmap[0].length-4;
+        return true; // for init, dir = '?'
+    }).join('');
+}
+
+
 var bmap = h.read("17", "map.txt").split('').tonum();
+var part = 1;
 
 // Fast Dijkstra (because using Maps) with weighted distances
 // input
@@ -105,7 +120,7 @@ var v = false; // verbose
 var iterator = 0;
 console.time("dijkstra");
 // var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
-while(next.length > 0 && (!v || (v && iterator < 5))){
+while(next.length > 0){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
     var [_, curs] = next.shift()!;
@@ -113,30 +128,38 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
     // get and inspect neighbors for each cur
     curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
     var minDist = mdist(curs[0].coor,goal);
-    // curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
-    for (const cur of curs) {
-        var dist = cur.dist;
-        
+    curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
+    for (const cur of curs) {        
         // --- get unvisited neighbors ----
         // get all neighbors
         var nbstring = cur.dir == '?' ? 'udlr' : cur.dir == 'u' ? 'ulr' : cur.dir == 'd' ? 'dlr' : cur.dir == 'l' ? 'lud' : 'rud'; // no 180 degree turns allowed!!
+        if (part == 2) {
+            if (cur.pot < 4) nbstring = cur.dir;
+            else if (cur.pot == 10) nbstring = 'ud'.includes(cur.dir) ? checkWalls(cur, 'lr') : checkWalls(cur,'ud');
+            else nbstring = checkWalls(cur, nbstring);
+        }
         var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1, nbstring) as Coor[];
         
         // convert to nodes
         var nb: Node[] = allNbCoor.map(c => {
             var dir = getDir(cur.coor, c);
             var pot = cur.dir == dir ? cur.pot + 1 : 1;
-            return new Node(dist + bmap[c[0]][c[1]], pot, dir, c, cur);
+            return new Node(cur.dist + bmap[c[0]][c[1]], pot, dir, c, cur);
         });
-        // filter on pot <= 3 and unvisited
-        nb = nb.filter(n => n.pot <= 3 && !visited.has(n)); // <= implementation of max-3-straight-steps rule!!
+        // filter on unvisited
+        nb = nb.filter(n => !visited.has(n));
 
-        // filter on no family members in next or visited with lower pot and lower dist
-        nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
+        // filter on part specific rules
+        if (part == 1) {
+            nb = nb.filter(n => n.pot <= 3); // <= implementation of max-3-straight-steps rule!!
+            // filter on no family members in next or visited with lower pot and lower dist
+            nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
+        }
+        if (part == 2) nb = nb.filter(n => n.pot <= 10); // <= implementation of max-10-straight-steps rule!!
+            
 
         // add to next or update if distance shorter than existing with same id
         for (const n of nb) {
-
             // set or update next if shorter or not present
             if (next2.has(n)) {
                 // update if shorter
@@ -162,7 +185,6 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
             goalN = cur;
             break;
         }
-        iterator++;
     }
 
     // break if goal
@@ -180,5 +202,5 @@ while(cur.id != startN.id){
 }
 
 // print shortest path
-h.print("shortest path from", start, "to", goal, "is", goalN.dist, "long");
+h.print("part", part, ": shortest path from", start, "to", goal, "is", goalN.dist, "long");
 bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
