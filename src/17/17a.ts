@@ -99,25 +99,21 @@ var checkWalls = (cur:Node, dirs: string) : string => {
 
 
 var bmap = h.read("17", "map.txt").split('').tonum();
-var part = 1;
+var part = 2;
 
 // Fast Dijkstra (because using Maps) with weighted distances
 // input
 var start = [0, 0] as Coor;
-var goal = [bmap.length-1, bmap[0].length-1] as Coor;
-
 var startN = new Node(0, 0, '?', start);
+var goal = [bmap.length-1, bmap[0].length-1] as Coor;
 
 // init
 var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
 var next2 = new Visited(); // loc => Nodes
-
 var visited = new Visited(); // loc => Nodes
 
 // find all distances from init for all nodes
 var goalN: Node | undefined = undefined;
-var v = false; // verbose
-var iterator = 0;
 console.time("dijkstra");
 // var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
 while(next.length > 0){
