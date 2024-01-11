@@ -64,6 +64,8 @@ class Visited {
     }
 }
 
+var mdist = (c1: Coor, c2: Coor) : number => Math.abs(c1[0] - c2[0]) + Math.abs(c1[1] - c2[1]);
+
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var getDir = (from: Coor, to: Coor) : string => from[0] == to[0] ? (from[1] < to[1] ? 'r' : 'l') : (from[0] < to[0] ? 'd' : 'u');
@@ -82,7 +84,7 @@ var setToNext = (n: Node, next: [number, Node[]][]) : void => {
     else next[index][1].push(n);
 }
 
-var bmap = h.read("17", "map.txt").split('').tonum();
+var bmap = h.read("17", "map.txt", "ex").split('').tonum();
 
 // Fast Dijkstra (because using Maps) with weighted distances
 // input
@@ -103,13 +105,16 @@ var v = false; // verbose
 var iterator = 0;
 var haltloc = 166;
 console.time("dijkstra");
+var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
     var [_, curs] = next.shift()!;
 
     // get and inspect neighbors for each cur
-    curs.sort((n1, n2) => n2.loc - n1.loc); // sort on loc to treat the closest to the goal first
+    curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
+    var minDist = mdist(curs[0].coor,goal);
+    curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
     for (const cur of curs) {
         if (cur.loc == haltloc) {
             var henk = 1;
@@ -166,7 +171,7 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
             goalN = cur;
             break;
         }
-        if (iterator % 10000 == 0) h.print("iteration", iterator);
+        pb.show(iterator);
         iterator++;
     }
 
