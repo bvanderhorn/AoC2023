@@ -84,7 +84,7 @@ var setToNext = (n: Node, next: [number, Node[]][]) : void => {
     else next[index][1].push(n);
 }
 
-var bmap = h.read("17", "map.txt", "ex").split('').tonum();
+var bmap = h.read("17", "map.txt").split('').tonum();
 
 // Fast Dijkstra (because using Maps) with weighted distances
 // input
