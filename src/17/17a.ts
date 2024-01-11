@@ -103,9 +103,8 @@ var visited = new Visited(); // loc => Nodes
 var goalN: Node | undefined = undefined;
 var v = false; // verbose
 var iterator = 0;
-var haltloc = 166;
 console.time("dijkstra");
-var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
+// var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
 while(next.length > 0 && (!v || (v && iterator < 5))){
     // get lowest set of nexts as curs
     next.sort((n1, n2) => n1[0] - n2[0]);
@@ -114,15 +113,9 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
     // get and inspect neighbors for each cur
     curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
     var minDist = mdist(curs[0].coor,goal);
-    curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
+    // curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
     for (const cur of curs) {
-        if (cur.loc == haltloc) {
-            var henk = 1;
-        }
         var dist = cur.dist;
-        h.printv(v,"step", iterator, "\ndist", dist, "\ncur", cur.id, 
-            "\nnext",next.map(n => [n[0], n[1].map(node => node.id)]).todict(), 
-            "\nvisited", [...visited.value.values()].flatMap((vis:Node[]) => vis.map(n => n.id)));
         
         // --- get unvisited neighbors ----
         // get all neighbors
@@ -140,8 +133,6 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
 
         // filter on no family members in next of visited with lower pot and lower dist
         nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
-
-        h.printv(v, "nb", nb.map(n => n.id));
 
         // add to next or update if distance shorter than existing with same id
         for (const n of nb) {
@@ -171,7 +162,6 @@ while(next.length > 0 && (!v || (v && iterator < 5))){
             goalN = cur;
             break;
         }
-        pb.show(iterator);
         iterator++;
     }
 
