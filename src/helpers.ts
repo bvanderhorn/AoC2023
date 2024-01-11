@@ -12,7 +12,7 @@ export function write(folder:string, filename:string, content:string, options:st
     // options
     const example: boolean = options.includes('ex');
 
-    const fn = (example ? exampleString : '') + filename;
+    const fn = (example ? 'example_' : '') + filename;
     print(' writing to file: ',folder,'/',fn)
     fs.writeFileSync(sourceFolder + folder + '/' + fn,content);
 }

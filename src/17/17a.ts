@@ -84,11 +84,13 @@ var setToNext = (n: Node, next: [number, Node[]][]) : void => {
     else next[index][1].push(n);
 }
 
+var getNb = (cur:Node, dirs: string) : Coor[] => dirs.length == 0 ? [] : h.getnb(cur.coor, bmap.length-1, bmap[0].length-1, dirs) as Coor[];
+
 var checkWalls = (cur:Node, dirs: string) : string => {
     // if direction changes: check if walls are not within 4 steps
     var [x, y] = cur.coor;
     return dirs.split('').filter(d => {
-        if (d == cur.dir) return true;
+        if (d == cur.dir) return true; // only check when turning
         if (d == 'u') return x > 3;
         if (d == 'd') return x < bmap.length-4;
         if (d == 'l') return y > 3;
@@ -131,10 +133,9 @@ while(next.length > 0){
         var nbstring = cur.dir == '?' ? 'udlr' : cur.dir == 'u' ? 'ulr' : cur.dir == 'd' ? 'dlr' : cur.dir == 'l' ? 'lud' : 'rud'; // no 180 degree turns allowed!!
         if (part == 2) {
             if (cur.pot < 4) nbstring = cur.dir;
-            else if (cur.pot == 10) nbstring = 'ud'.includes(cur.dir) ? checkWalls(cur, 'lr') : checkWalls(cur,'ud');
-            else nbstring = checkWalls(cur, nbstring);
+            else nbstring = checkWalls(cur, nbstring); // check if walls are not within 4 when changing direction
         }
-        var allNbCoor = h.getnb(cur.coor, bmap.length-1, bmap[0].length-1, nbstring) as Coor[];
+        var allNbCoor = getNb(cur,nbstring);
         
         // convert to nodes
         var nb: Node[] = allNbCoor.map(c => {
@@ -147,11 +148,11 @@ while(next.length > 0){
 
         // filter on part specific rules
         if (part == 1) {
-            nb = nb.filter(n => n.pot <= 3); // <= implementation of max-3-straight-steps rule!!
+            nb = nb.filter(n => n.pot <= 3); // <= implementation of max-3-straight-steps rule
             // filter on no family members in next or visited with lower pot and lower dist
             nb = nb.filter(n => visited.getFamily(n).concat(next2.getFamily(n)).filter(f => f.pot < n.pot && f.dist <= n.dist).length == 0 );
         }
-        if (part == 2) nb = nb.filter(n => n.pot <= 10); // <= implementation of max-10-straight-steps rule!!
+        if (part == 2) nb = nb.filter(n => n.pot <= 10); // <= implementation of max-10-straight-steps rule
             
 
         // add to next or update if distance shorter than existing with same id
