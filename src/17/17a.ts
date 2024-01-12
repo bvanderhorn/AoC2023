@@ -125,9 +125,15 @@ while(next.length > 0){
 
     // get and inspect neighbors for each cur
     curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
-    var minDist = mdist(curs[0].coor,goal);
-    curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
-    for (const cur of curs) {        
+    // var minDist = mdist(curs[0].coor,goal);
+    // curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
+    for (const cur of curs) {       
+        // check if goal
+        if (cur.loc == coorToInt(goal)) {
+            goalN = cur;
+            break;
+        }
+         
         // --- get unvisited neighbors ----
         // get all neighbors
         var nbstring = cur.dir == '?' ? 'udlr' : cur.dir == 'u' ? 'ulr' : cur.dir == 'd' ? 'dlr' : cur.dir == 'l' ? 'lud' : 'rud'; // no 180 degree turns allowed!!
@@ -176,12 +182,6 @@ while(next.length > 0){
         // add cur to visited
         visited.set(cur);
         next2.delete(cur);
-
-        // check if goal
-        if (cur.loc == coorToInt(goal)) {
-            goalN = cur;
-            break;
-        }
     }
 
     // break if goal
