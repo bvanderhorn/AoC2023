@@ -515,13 +515,14 @@ const snakeInternalNbMapping = [
     ["dl", ["rd",""]]
 ].todict();
 
-function getInternalNb(grid:any[][], pos: number[], turn:string, insideDir:string) : number[][] {
+function getInternalNb(grid:any[][]|null, pos: number[], turn:string, insideDir:string) : number[][] {
     var m = snakeInternalNbMapping.get(turn)!;
     var nb = 'lL'.includes(insideDir) ? m[0] : m[1];
     return materializeNb(grid, pos, nb);
 }
 
-function getSnakeNodeDirections(snake: [number, number][]) : string[] {
+function getSnakeNodeDirections(snakeIn: [number, number][]) : string[] {
+    var snake = equals2(snakeIn[0], snakeIn.last()) ? snakeIn.slice(0,-1) : snakeIn;
     return snake.map((_,i) => {
         var [dx, dy] = snake.get(i+1).plusEach(snake.get(i).times(-1));
         return dx == 0
@@ -530,18 +531,22 @@ function getSnakeNodeDirections(snake: [number, number][]) : string[] {
     });
 }
 
-export function materializeNb(grid:any[][], pos:number[], nb:string) : number[][] {
-    return nb.length == 0 ? [] : getnb(pos, grid.length-1, grid[0].length-1, nb);
+export function materializeNb(grid:any[][]|null, pos:number[], nb:string) : number[][] {
+    var [x,y] = pos;
+    var [dx, dy] = grid == null ? [[x-1, x+1], [y-1, y+1]] : [[0, grid.length-1], [0, grid[0].length-1]];
+    return nb.length == 0 ? [] : getnb(pos, dx, dy, nb);
 }
 
-export function getSnakeInsideDirection(snake: [number, number][]) {
+export function getSnakeInsideDirection(snakeIn: [number, number][]) {
+    var snake = equals2(snakeIn[0], snakeIn.last()) ? snakeIn.slice(0,-1) : snakeIn; // remove last element if snake is closed
     var directions = getSnakeNodeDirections(snake);
     var turns = directions.map((d,i) => directions.get(i-1) + d);
     var lr = turns.map(t => t[0] == t[1] ? 's' : 'lurdl'.includes(t) ? 'r' : 'l');
     return lr.count('r') > lr.count('l') ? 'r' : 'l';
 }
 
-export function getSnakeInternalFields(grid:any[][], snake: [number, number][], includingSnake:boolean = false) : [number, number][] {
+export function getSnakeInternalFields(grid:any[][]|null, snakeIn: [number, number][], includingSnake:boolean = false) : [number, number][] {
+    var snake = equals2(snakeIn[0], snakeIn.last()) ? snakeIn.slice(0,-1) : snakeIn; // remove last element if snake is closed
     var insideDir = getSnakeInsideDirection(snake);
     var directions = getSnakeNodeDirections(snake);
     var turns = directions.map((d,i) => directions.get(i-1) + d);
@@ -554,7 +559,7 @@ export function getSnakeInternalFields(grid:any[][], snake: [number, number][], 
         internals.push(...nb.filter(n => !internals.includes2(n) && !snake.includes2(n)));
         i++;
     }
-    return internals;
+    return includingSnake ? internals.concat(snake) : internals;
 }
 
 export class DoubleSet<T1> {
