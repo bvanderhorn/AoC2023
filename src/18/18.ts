@@ -20,4 +20,12 @@ var start : Coor = [0,0];
 var nodes : Coor[] = [start];
 digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
 var path = h.expandTrace(nodes);
-h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true).length);
+var pathx = path.map(p => p[0]);
+var pathy = path.map(p => p[1]);
+
+h.print(pathx.min(), pathx.max(), pathy.min(), pathy.max());
+
+// var digmap = h.coorToMap(path.map(p => [p[0], p[1], 1]), (x) => x==1 ? '#' : '.');
+// digmap.printc((x) => x == '#', 'm');
+
+// h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true).length);
