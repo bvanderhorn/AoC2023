@@ -100,7 +100,7 @@ var checkWalls = (cur:Node, dirs: string) : string => {
 }
 
 
-var bmap = h.read("17", "map.txt", "ex2").split('').tonum();
+var bmap = h.read("17", "map.txt").split('').tonum();
 var part = 2;
 
 // Fast Dijkstra (because using Maps) with weighted distances

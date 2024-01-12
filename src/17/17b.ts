@@ -69,6 +69,10 @@ var mdist = (c1: Coor, c2: Coor) : number => Math.abs(c1[0] - c2[0]) + Math.abs(
 var coorToInt = (coor: Coor) : number => coor[0] + coor[1]*bmap.length;
 var intToCoor = (int: number) : Coor => [int % bmap.length, Math.floor(int / bmap.length)];
 var getDir = (from: Coor, to: Coor) : string => from[0] == to[0] ? (from[1] < to[1] ? 'r' : 'l') : (from[0] < to[0] ? 'd' : 'u');
+var printResult = (path: Node[], part:number, print:boolean = false) : void => {
+    h.print("part", part, ": shortest path from", start, "to", goal, "is", path.last().dist, "long");
+    if (print) bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
+}
 
 var deleteFromNextIfPresent = (n: Node, next: [number, Node[]][]) : void => {
     var index = next.findIndex(nl => nl[0] == n.rank);
@@ -92,7 +96,7 @@ var nbToNode = (cur:Node, nb: Coor) : Node => {
     return new Node(cur.dist + deltaDist, pot, dir, nb, cur);
 }
 
-var getNb = (cur:Node, part:number) : Node[] => {
+var getNb = (cur:Node, visited: Visited, next2: Visited, part:number) : Node[] => {
     // --- get unvisited neighbors ----
     // get all neighbors
     if (part == 1) {
@@ -120,88 +124,86 @@ var getNb = (cur:Node, part:number) : Node[] => {
         .filter(n => !visited.has(n));              // filter on unvisited
 }
 
+var dijkstra = (start: Coor, goal: Coor, part:number) : Node[] => {
+    // Fast Dijkstra (because using Maps) with weighted distances
+    console.time("dijkstra part " + part);
 
-var bmap = h.read("17", "map.txt").split('').tonum();
-var part = 2;
+    // init
+    var startN = new Node(0, 0, '?', start);
+    var goalN: Node | undefined = undefined;
+    var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
+    var next2 = new Visited(); // loc => Nodes
+    var visited = new Visited(); // loc => Nodes
 
-// Fast Dijkstra (because using Maps) with weighted distances
-// input
-var start = [0, 0] as Coor;
-var startN = new Node(0, 0, '?', start);
-var goal = [bmap.length-1, bmap[0].length-1] as Coor;
+    while(next.length > 0){
+        // get lowest set of nexts as curs
+        next.sort((n1, n2) => n1[0] - n2[0]);
+        var [_, curs] = next.shift()!;
 
-// init
-var next : [number, Node[]][] = [[startN.rank, [startN]]]; // [rank, [nodes]][]
-var next2 = new Visited(); // loc => Nodes
-var visited = new Visited(); // loc => Nodes
-
-// find all distances from init for all nodes
-var goalN: Node | undefined = undefined;
-console.time("dijkstra");
-var iterator = 0;
-// var pb = new h.ProgressBar(bmap.length*bmap[0].length*12, 1E3);
-while(next.length > 0){
-    // get lowest set of nexts as curs
-    next.sort((n1, n2) => n1[0] - n2[0]);
-    var [_, curs] = next.shift()!;
-
-    // get and inspect neighbors for each cur
-    curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
-    var minDist = mdist(curs[0].coor,goal);
-    curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
-    for (const cur of curs) {
-        // get unvisited neighbors
-        var nb = getNb(cur, part);
-        // h.print(nb);
-
-        // add to next or update if distance shorter than existing with same id
-        for (const n of nb) {
-            // set or update next if shorter or not present
-            if (next2.has(n)) {
-                // update if shorter
-                var oldn = next2.get(n)!;
-                if (n.dist < oldn.dist) {
+        // get and inspect neighbors for each cur
+        curs.sort((n1, n2) =>  mdist(n1.coor,goal) - mdist(n2.coor,goal)); // sort on loc to treat the closest to the goal first
+        // var minDist = mdist(curs[0].coor,goal);
+        // curs = curs.filter(c => mdist(c.coor,goal) < minDist + Math.round(bmap.length/8)); // only treat the closest nodes to the goal
+        for (const cur of curs) {
+            // get unvisited neighbors
+            var nb = getNb(cur, visited, next2, part);
+            // add to next or update if distance shorter than existing with same id
+            for (const n of nb) {
+                // set or update next if shorter or not present
+                if (next2.has(n)) {
+                    // update if shorter
+                    var oldn = next2.get(n)!;
+                    if (n.dist < oldn.dist) {
+                        next2.set(n);
+                        deleteFromNextIfPresent(oldn, next);
+                        setToNext(n, next);
+                    }
+                } else {
+                    // add to next
                     next2.set(n);
-                    deleteFromNextIfPresent(oldn, next);
                     setToNext(n, next);
                 }
-            } else {
-                // add to next
-                next2.set(n);
-                setToNext(n, next);
+            }
+
+            // add cur to visited
+            visited.set(cur);
+            next2.delete(cur);
+
+            // check if goal
+            if (cur.loc == coorToInt(goal)) {
+                goalN = cur;
+                break;
             }
         }
 
-        // add cur to visited
-        visited.set(cur);
-        next2.delete(cur);
-
-        // check if goal
-        // if (cur.loc == coorToInt(goal)) {
-        //     goalN = cur;
-        //     break;
-        // }
-        // h.print(iterator++);
+        // break if goal
+        if (goalN != undefined) break;
     }
 
-    // break if goal
-    // if (goalN != undefined) break;
+    // get entire path of Nodes from start to goal
+    if (goalN == undefined) throw "no path found";
+    var path: Node[] = [goalN];
+    var cur = goalN;
+    while(cur.id != startN.id){
+        path.unshift(cur.from!);
+        cur = cur.from!;
+    }
+
+    console.timeEnd("dijkstra part " + part);
+    return path;
 }
-console.timeEnd("dijkstra");
 
-// get goal location with shortest path
-var goals = visited.value.get(coorToInt(goal));
-h.print(goals);
+// ----------------- script --------------------
 
-// get shortest path and dist from init to goal
-// if (goalN == undefined) throw "no path found";
-// var path: Node[] = [goalN];
-// var cur = goalN;
-// while(cur.id != startN.id){
-//     path.unshift(cur.from!);
-//     cur = cur.from!;
-// }
+var bmap = h.read("17", "map.txt").split('').tonum();
 
-// // print shortest path
-// h.print("part", part, ": shortest path from", start, "to", goal, "is", goalN.dist, "long");
-// bmap.printc((_, i, j) => path.map(p=>p.loc).includes(coorToInt([i,j])), 'm');
+// input
+var start = [0, 0] as Coor;
+var goal = [bmap.length-1, bmap[0].length-1] as Coor;
+
+var path1 = dijkstra(start, goal, 1);
+printResult(path1, 1);
+
+// part 2
+var path2 = dijkstra(start, goal, 2);
+printResult(path2, 2, true);
