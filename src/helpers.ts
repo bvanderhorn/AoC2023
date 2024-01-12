@@ -499,6 +499,64 @@ export function findAllOccurrencesOf(re: RegExp, search: string) : RegExpExecArr
     return occurrences;
 }
 
+const snakeInternalNbMapping = [
+    // for a given 'turn' for a list of 'snake' of coordinates, this mapping gives the internal neighbors
+    ["rr", ["u","d"]],
+    ["ll", ["d","u"]],
+    ["uu", ["l","r"]],
+    ["dd", ["r","l"]],
+    ["dr", ["","ld"]],
+    ["ru", ["","dr"]],
+    ["ul", ["","ru"]],
+    ["ld", ["","ul"]],
+    ["rd", ["ur",""]],
+    ["ur", ["lu",""]],
+    ["lu", ["dl",""]],
+    ["dl", ["rd",""]]
+].todict();
+
+function getInternalNb(grid:any[][], pos: number[], turn:string, insideDir:string) : number[][] {
+    var m = snakeInternalNbMapping.get(turn)!;
+    var nb = 'lL'.includes(insideDir) ? m[0] : m[1];
+    return materializeNb(grid, pos, nb);
+}
+
+function getSnakeNodeDirections(snake: [number, number][]) : string[] {
+    return snake.map((_,i) => {
+        var [dx, dy] = snake.get(i+1).plusEach(snake.get(i).times(-1));
+        return dx == 0
+           ? dy > 0 ? 'r' : 'l'
+           : dx > 0 ? 'd' : 'u';
+    });
+}
+
+export function materializeNb(grid:any[][], pos:number[], nb:string) : number[][] {
+    return nb.length == 0 ? [] : getnb(pos, grid.length-1, grid[0].length-1, nb);
+}
+
+export function getSnakeInsideDirection(snake: [number, number][]) {
+    var directions = getSnakeNodeDirections(snake);
+    var turns = directions.map((d,i) => directions.get(i-1) + d);
+    var lr = turns.map(t => t[0] == t[1] ? 's' : 'lurdl'.includes(t) ? 'r' : 'l');
+    return lr.count('r') > lr.count('l') ? 'r' : 'l';
+}
+
+export function getSnakeInternalFields(grid:any[][], snake: [number, number][], includingSnake:boolean = false) : [number, number][] {
+    var insideDir = getSnakeInsideDirection(snake);
+    var directions = getSnakeNodeDirections(snake);
+    var turns = directions.map((d,i) => directions.get(i-1) + d);
+    var internals = turns.map((t,i) => getInternalNb(grid, snake[i],t, insideDir)).flat().filter(n => !snake.includes2(n)).unique();
+
+    var i=0;
+    while (i<internals.length){
+        var cur = internals[i];
+        var nb = materializeNb(grid, cur,'lrud');
+        internals.push(...nb.filter(n => !internals.includes2(n) && !snake.includes2(n)));
+        i++;
+    }
+    return internals;
+}
+
 export class DoubleSet<T1> {
     private _setMap = new Map<T1, Set<T1>>();
 
