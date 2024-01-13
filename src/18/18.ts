@@ -41,7 +41,7 @@ var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
     stretches.push(newStretch);
 }
 
-var digplan = h.read("18", "digplan.txt", "ex")
+var digplan = h.read("18", "digplan.txt")
     .match(/(\w)\s+(\d+)\s+\((#[\d\w]+)\)/)
     .map(d => ({dir: d[0].toLowerCase(), dist: +d[1], hex: d[2]}));
 h.print(digplan.slice(0,3));
@@ -58,9 +58,10 @@ digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
 var evens = 'ud'.includes(digplan[0].dir);
 var verticals: Line[] = [];
 nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.slice2(i, i+2) as Line) : null);
-h.print(verticals);
+// h.print(verticals);
 
 // group vertical lines by x of end nodes
+var v = false; // verbose
 var verticalsByXList : [number, Line[]][] = [];
 verticals.map(v => {v.map(([x,y]) => {
     var index = verticalsByXList.findIndex(v => v[0] == x);
@@ -71,7 +72,7 @@ verticals.map(v => {v.map(([x,y]) => {
 verticalsByXList.sort((a,b) => a[0]-b[0]);
 verticalsByXList.map(v => v[1].sort((a,b) => a[0][1]-b[0][1]));
 
-h.print(verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
+h.printv(v,verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
 
 // create lookups for vertical lines
 var interestingX = verticalsByXList.map(v => v[0]).sort((a,b) => a-b);
@@ -83,12 +84,12 @@ var curStretches: Coor[] = [];
 var nextStretchTotals = 0;
 for (var i = 0; i < interestingX.length; i++) {
     const curX = interestingX[i];
-    h.print("x:", curX);
+    h.printv(v,"x:", curX);
     var switchStretchTotals = nextStretchTotals;
     var curVerticals: Line[] = verticalsByX.get(curX)!;
     var newStretches: Coor[] = [];
     curVerticals.map((v,i) => i%2==0 ? newStretches.push([v[0][1], curVerticals[i+1][0][1]]) : null);
-    h.print(" new stretches:", newStretches);
+    h.printv(v," new stretches:", newStretches);
     for (const newStretch of newStretches) {
         var curlen = slens(curStretches);
         updateStretches(curStretches, newStretch);
@@ -99,16 +100,16 @@ for (var i = 0; i < interestingX.length; i++) {
             switchStretchTotals += newlen - curlen;
         }
     }
-    h.print(" new curStretches:", curStretches);
+    h.printv(v," new curStretches:", curStretches);
     total += switchStretchTotals;
-    h.print(" switchTotals:", switchStretchTotals, "total:", total);
+    h.printv(v," switchTotals:", switchStretchTotals, "total:", total);
     nextStretchTotals = slens(curStretches);
 
     if (i < interestingX.length - 1) {
         var nextX = interestingX[i+1];
         var deltaX = nextX - curX - 1;
         total += deltaX * nextStretchTotals;
-        h.print(" deltaX:", deltaX, "nextStretchTotals:", nextStretchTotals, "total:", total);
+        h.printv(v," deltaX:", deltaX, "nextStretchTotals:", nextStretchTotals, "total:", total);
     }
 }
 
