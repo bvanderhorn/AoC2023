@@ -15,7 +15,6 @@ var slen = (stretch: Coor) : number => Math.abs(stretch[0] - stretch[1]) + 1;
 var slens = (stretches: Coor[]) : number => stretches.map(slen).sum();
 
 var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
-    // TODO: allow (or check beforehand) for crossing stretches
     var [x1, x2] =[newStretch.min(), newStretch.max()];
     for (const stretch of stretches) {
         var [y1, y2] = [stretch.min(), stretch.max()];
@@ -46,13 +45,13 @@ var digplan = h.read("18", "digplan.txt")
     .map(d => ({dir: d[0].toLowerCase(), dist: +d[1], hex: d[2]}));
 h.print(digplan.slice(0,3));
 
-// TODO: merge subsequent dig actions that are in the same direction
+// check if digplan contains subsequent digs in same direction
+var containsSubsequent = digplan.slice(1).map((d,i) => d.dir == digplan[i].dir).includes(true);
+h.print("containsSubsequent:", containsSubsequent);
 
 var start : Coor = [0,0];
 var nodes : Coor[] = [start];
 digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
-
-// TODO: check for crossing dig actions
 
 // create list of vertical lines
 var evens = 'ud'.includes(digplan[0].dir);
