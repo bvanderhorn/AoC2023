@@ -23,18 +23,24 @@ var start : Coor = [0,0];
 var nodes : Coor[] = [start];
 digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
 
+// create list of vertical lines
 var evens = 'ud'.includes(digplan[0].dir);
 var verticals: Line[] = [];
 nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.slice2(i, i+2) as Line) : null);
 h.print(verticals);
 
-var verticalsByX : [number, Line[]][] = [];
+// group vertical lines by x of end nodes
+var verticalsByXList : [number, Line[]][] = [];
 verticals.map(v => {v.map(([x,y]) => {
-    var index = verticalsByX.findIndex(v => v[0] == x);
-    if (index == -1) verticalsByX.push([x, [v]]);
-    else verticalsByX[index][1].push(v);
+    var index = verticalsByXList.findIndex(v => v[0] == x);
+    if (index == -1) verticalsByXList.push([x, [v]]);
+    else verticalsByXList[index][1].push(v);
 })});
 
-h.print(verticalsByX.map(v => [v[0], v[1].map(l => l.toString())]).todict());
+h.print(verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
+
+// create lookups for vertical lines
+var interestingX = verticalsByXList.map(v => v[0]).sort((a,b) => a-b);
+var verticalsByX = verticalsByXList.todict();
 
 // h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true, true).length);
