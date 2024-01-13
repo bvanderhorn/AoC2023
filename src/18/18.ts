@@ -81,6 +81,7 @@ var verticalsByX = verticalsByXList.todict();
 var total = 0;
 var curStretches: Coor[] = [];
 var nextStretchTotals = 0;
+var lines = new Map<number, Coor[]|number>();
 for (var i = 0; i < interestingX.length; i++) {
     const curX = interestingX[i];
     h.printv(v,"x:", curX);
@@ -101,15 +102,24 @@ for (var i = 0; i < interestingX.length; i++) {
     }
     h.printv(v," new curStretches:", curStretches);
     total += switchStretchTotals;
+    lines.set(curX, switchStretchTotals);
     h.printv(v," switchTotals:", switchStretchTotals, "total:", total);
     nextStretchTotals = slens(curStretches);
 
     if (i < interestingX.length - 1) {
         var nextX = interestingX[i+1];
         var deltaX = nextX - curX - 1;
+        h.range(1, deltaX + 1).map(j => lines.set(curX + j, curStretches));
         total += deltaX * nextStretchTotals;
         h.printv(v," deltaX:", deltaX, "nextStretchTotals:", nextStretchTotals, "total:", total);
     }
 }
 
 h.print("part 1:",total);
+
+// old way comparison
+var path = h.expandTrace(nodes);
+var internalFields: Coor[] = h.getSnakeInternalFields(null, path as Coor[], true, true);
+
+
+
