@@ -108,16 +108,16 @@ export function coorMapToMap(coor: Map<string, number>, translate: (x:number) =>
 
 export function coorToMap(coor:[number, number, number][], translate: (x:number) => string, unchartered: string = ".", givenRange: [[number, number], [number, number]] | undefined = undefined) : string[][] {
     // draw a 2D map of coordinates
-    // coor in format [x, y, value], where x is right and y is down
+    // coor in format [x, y, value], where x is down and y is right
     // translate is a function that translates the value to a string
     // returns a 2D string array that can be printed using x.printc() or x.stringc()
 
     var xRange = givenRange != undefined ? givenRange[0] : coor.map(x => x[0]).minmax();
     var yRange = givenRange != undefined ? givenRange[1] : coor.map(x => x[1]).minmax();
     var str: string[][] = [];
-    for (var y = yRange[0]; y <= yRange[1]; y++) {
+    for (var x = xRange[0]; x <= xRange[1]; x++) {
         var curStr : string[] = [];
-        for (var x = xRange[0]; x <= xRange[1]; x++) {
+        for (var y = yRange[0]; y <= yRange[1]; y++) {
             var mIndex = coor.findIndex(m => equals2(m.slice(0,2), [x,y]));
             curStr.push(mIndex>-1 ? translate(coor[mIndex][2]) : unchartered);
         }
@@ -545,7 +545,7 @@ export function getSnakeInsideDirection(snakeIn: [number, number][]) {
     return lr.count('r') > lr.count('l') ? 'r' : 'l';
 }
 
-export function getSnakeInternalFields(grid:any[][]|null, snakeIn: [number, number][], includingSnake:boolean = false) : [number, number][] {
+export function getSnakeInternalFields(grid:any[][]|null, snakeIn: [number, number][], includingSnake:boolean = false, waitbar:boolean = false) : [number, number][] {
     var snake = equals2(snakeIn[0], snakeIn.last()) ? snakeIn.slice(0,-1) : snakeIn; // remove last element if snake is closed
     var insideDir = getSnakeInsideDirection(snake);
     var directions = getSnakeNodeDirections(snake);
@@ -553,11 +553,14 @@ export function getSnakeInternalFields(grid:any[][]|null, snakeIn: [number, numb
     var internals = turns.map((t,i) => getInternalNb(grid, snake[i],t, insideDir)).flat().filter(n => !snake.includes2(n)).unique();
 
     var i=0;
+    var [px, py] = [snake.map(x => x[0]), snake.map(x => x[1])];
+    var estimate = (px.max() - px.min())*(py.max() - py.min());
+    var pb = new ProgressBar(estimate, 1E3);
     while (i<internals.length){
         var cur = internals[i];
         var nb = materializeNb(grid, cur,'lrud');
         internals.push(...nb.filter(n => !internals.includes2(n) && !snake.includes2(n)));
-        i++;
+        pb.show(i++);
     }
     return includingSnake ? internals.concat(snake) : internals;
 }
