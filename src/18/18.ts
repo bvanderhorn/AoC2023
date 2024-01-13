@@ -11,6 +11,35 @@ var newCoor = (coor: Coor, dig: Dig) : Coor => {
         dig.dir == 'r' ? [x, y + dig.dist] :
         [x, y];
 }
+var slen = (stretch: Coor) : number => Math.abs(stretch[0] - stretch[1]) + 1;
+var slens = (stretches: Coor[]) : number => stretches.map(slen).sum();
+
+var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
+    // TODO: allow (or check beforehand) for crossing stretches
+    var [x1, x2] =[newStretch.min(), newStretch.max()];
+    for (const stretch of stretches) {
+        var [y1, y2] = [stretch.min(), stretch.max()];
+        // x1 = y1 or x2 = y2: reduce existing stretch
+        if (x1 == y1 ) {
+            stretch[0] = x2;
+            return;
+        }
+        if (x2 == y2) {
+            stretch[1] = x1;
+            return;
+        }
+
+        // if new stretch is inside existing stretch: split existing stretch
+        if (x1 > y1 && x2 < y2) {
+            stretch[1] = x1;
+            stretches.push([x2, y2]);
+            return;
+        }
+    }
+
+    // if new stretch is not inside existing stretches: add new stretch
+    stretches.push(newStretch);
+}
 
 var digplan = h.read("18", "digplan.txt", "ex")
     .match(/(\w)\s+(\d+)\s+\((#[\d\w]+)\)/)
@@ -22,6 +51,8 @@ h.print(digplan.slice(0,3));
 var start : Coor = [0,0];
 var nodes : Coor[] = [start];
 digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
+
+// TODO: check for crossing dig actions
 
 // create list of vertical lines
 var evens = 'ud'.includes(digplan[0].dir);
@@ -50,11 +81,35 @@ var verticalsByX = verticalsByXList.todict();
 var total = 0;
 var curStretches: Coor[] = [];
 var nextStretchTotals = 0;
-for (const curX of interestingX) {
-    var curStretchTotals = nextStretchTotals;
+for (var i = 0; i < interestingX.length; i++) {
+    const curX = interestingX[i];
+    h.print("x:", curX);
+    var switchStretchTotals = nextStretchTotals;
     var curVerticals: Line[] = verticalsByX.get(curX)!;
-    var xStretches: Coor[] = curVerticals.map(v => [v[0][0], v[1][0]]);
+    var newStretches: Coor[] = [];
+    curVerticals.map((v,i) => i%2==0 ? newStretches.push([v[0][1], curVerticals[i+1][0][1]]) : null);
+    h.print(" new stretches:", newStretches);
+    for (const newStretch of newStretches) {
+        var curlen = slens(curStretches);
+        updateStretches(curStretches, newStretch);
+        curStretches = h.mergeIntervals(curStretches as number[][], true) as Coor[];
+        var newlen = slens(curStretches);
 
+        if (newlen > curlen) {
+            switchStretchTotals += newlen - curlen;
+        }
+    }
+    h.print(" new curStretches:", curStretches);
+    total += switchStretchTotals;
+    h.print(" switchTotals:", switchStretchTotals, "total:", total);
+    nextStretchTotals = slens(curStretches);
+
+    if (i < interestingX.length - 1) {
+        var nextX = interestingX[i+1];
+        var deltaX = nextX - curX - 1;
+        total += deltaX * nextStretchTotals;
+        h.print(" deltaX:", deltaX, "nextStretchTotals:", nextStretchTotals, "total:", total);
+    }
 }
 
-// h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true, true).length);
+h.print("part 1:",total);
