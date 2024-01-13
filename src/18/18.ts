@@ -36,6 +36,9 @@ verticals.map(v => {v.map(([x,y]) => {
     if (index == -1) verticalsByXList.push([x, [v]]);
     else verticalsByXList[index][1].push(v);
 })});
+// sort on x, y
+verticalsByXList.sort((a,b) => a[0]-b[0]);
+verticalsByXList.map(v => v[1].sort((a,b) => a[0][1]-b[0][1]));
 
 h.print(verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
 
