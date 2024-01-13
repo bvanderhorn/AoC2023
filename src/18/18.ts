@@ -1,6 +1,7 @@
 import * as h from '../helpers';
 type Dig = { dir: string,  dist: number,  hex: string }
 type Coor = [number, number];
+type Line = [Coor, Coor];
 
 var newCoor = (coor: Coor, dig: Dig) : Coor => {
     var [x, y] = coor;
@@ -23,7 +24,17 @@ var nodes : Coor[] = [start];
 digplan.map(d => nodes.push(newCoor(nodes.last(), d)));
 
 var evens = 'ud'.includes(digplan[0].dir);
-var verticals: [Coor, Coor][] = [];
-nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.slice2(i, i+2) as [Coor, Coor]) : null);
+var verticals: Line[] = [];
+nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.slice2(i, i+2) as Line) : null);
 h.print(verticals);
+
+var verticalsByX : [number, Line[]][] = [];
+verticals.map(v => {v.map(([x,y]) => {
+    var index = verticalsByX.findIndex(v => v[0] == x);
+    if (index == -1) verticalsByX.push([x, [v]]);
+    else verticalsByX[index][1].push(v);
+})});
+
+h.print(verticalsByX.map(v => [v[0], v[1].map(l => l.toString())]).todict());
+
 // h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true, true).length);
