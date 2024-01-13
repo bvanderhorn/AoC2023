@@ -46,4 +46,15 @@ h.print(verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict())
 var interestingX = verticalsByXList.map(v => v[0]).sort((a,b) => a-b);
 var verticalsByX = verticalsByXList.todict();
 
+// loop through interesting horizontals and calculate inner surface
+var total = 0;
+var curStretches: Coor[] = [];
+var nextStretchTotals = 0;
+for (const curX of interestingX) {
+    var curStretchTotals = nextStretchTotals;
+    var curVerticals: Line[] = verticalsByX.get(curX)!;
+    var xStretches: Coor[] = curVerticals.map(v => [v[0][0], v[1][0]]);
+
+}
+
 // h.print("part 1:",h.getSnakeInternalFields(null, path as [number,number][], true, true).length);
