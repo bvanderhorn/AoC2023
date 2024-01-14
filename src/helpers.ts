@@ -176,6 +176,19 @@ export function mergeIntervals(intervals: number[][], mergeConnected:boolean = f
     return equals2(merged, intervals) ?  merged : mergeIntervals(merged, mergeConnected);
 }
 
+export function mergeIntervals2(intervals: number[][], mergeConnected:boolean = false) : number[][] {
+	var int : number[][] = intervals.copy();
+	int.map(i => i.sort((a,b) => a-b));
+	int.sort((a,b) => a[0] - b[0]);
+	var out = [int[0]];
+	int.slice(1).map(i => {
+		var last = out.last();
+		if (i[0] <= last[1] || ( i[0] == (last[1] +1) && mergeConnected) ) last[1] = [last[1], i[1]].max();
+		else out.push(i);
+	});
+	return out;
+}
+
 export function isInInterval(interval:number[], number:number) : boolean {
     // check if number is in interval
     return number >= interval[0] && number <= interval[1];
@@ -569,7 +582,7 @@ export function numbersToIntervals(numbers:number[]) : number[][] {
     // convert a list of numbers to a list of intervals
     // note: the intervals are sorted and merged
     var sorted = numbers.sort((a,b) => a-b).map(x => [x,x]);
-    return mergeIntervals(sorted, true);
+    return mergeIntervals2(sorted, true);
 }
 
 export class DoubleSet<T1> {

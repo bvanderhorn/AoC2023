@@ -94,7 +94,7 @@ for (var i = 0; i < interestingX.length; i++) {
     for (const newStretch of newStretches) {
         var curlen = slens(curStretches);
         updateStretches(curStretches, newStretch);
-        curStretches = h.mergeIntervals(curStretches as number[][], true) as Coor[];
+        curStretches = h.mergeIntervals2(curStretches as number[][], true) as Coor[];
         var newlen = slens(curStretches);
 
         if (newlen > curlen) {
@@ -110,7 +110,7 @@ for (var i = 0; i < interestingX.length; i++) {
     if (i < interestingX.length - 1) {
         var nextX = interestingX[i+1];
         var deltaX = nextX - curX - 1;
-        h.range(1, deltaX + 1).map(j => lines.set(curX + j, curStretches));
+        h.range(1, deltaX + 1).map(j => lines.set(curX + j, curStretches.copy()));
         total += deltaX * nextStretchTotals;
         h.printv(v," deltaX:", deltaX, "nextStretchTotals:", nextStretchTotals, "total:", total);
     }
@@ -132,14 +132,16 @@ h.print('convert internal fields map');
 var iMap = new Map<number, Coor[]>();
 var it = 0;
 internalFieldsMap.forEach((v,k) => {
-    h.print(it++);
+    // h.print(it++);
     iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]);
 });
 h.print("compare");
+
 for (var i = 0; i<= interestingX.last(); i++) {
     var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
     var oldLen = slens(iMap.get(i)!);
     if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
 }
+h.print("total: new:",Array.from(lines.values()).map(x => typeof(x)=="number" ? x : slens(x as Coor[])).sum(), "old:", Array.from(iMap.values()).map(slens).sum());
 
 
