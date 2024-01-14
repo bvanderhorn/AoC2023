@@ -1,3 +1,4 @@
+import internal = require('stream');
 import * as h from '../helpers';
 type Dig = { dir: string,  dist: number,  hex: string }
 type Coor = [number, number];
@@ -120,6 +121,18 @@ h.print("part 1:",total);
 // old way comparison
 var path = h.expandTrace(nodes);
 var internalFields: Coor[] = h.getSnakeInternalFields(null, path as Coor[], true, true);
-
+var internalFieldsMap = new Map<number, Coor[]>();
+internalFields.map(f => {
+    var [x, y] = f;
+    var fields = internalFieldsMap.get(x);
+    if (fields) fields.push(f);
+    else internalFieldsMap.set(x, [f]);
+});
+internalFieldsMap.forEach((v,k) => internalFieldsMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]));
+for (var i = 0; i<= interestingX.last(); i++) {
+    var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
+    var oldLen = slens(internalFieldsMap.get(i)!);
+    if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", internalFieldsMap.get(i),")");
+}
 
 

@@ -565,6 +565,13 @@ export function getSnakeInternalFields(grid:any[][]|null, snakeIn: [number, numb
     return includingSnake ? internals.concat(snake) : internals;
 }
 
+export function numbersToIntervals(numbers:number[]) : number[][] {
+    // convert a list of numbers to a list of intervals
+    // note: the intervals are sorted and merged
+    var sorted = numbers.sort((a,b) => a-b).map(x => [x,x]);
+    return mergeIntervals(sorted, true);
+}
+
 export class DoubleSet<T1> {
     private _setMap = new Map<T1, Set<T1>>();
 
