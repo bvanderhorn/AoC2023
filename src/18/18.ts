@@ -137,7 +137,7 @@ internalFieldsMap.forEach((v,k) => {
 });
 h.print("compare");
 
-for (var i = 0; i<= interestingX.last(); i++) {
+for (var i = interestingX[0]; i<= interestingX.last(); i++) {
     var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
     var oldLen = slens(iMap.get(i)!);
     if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
