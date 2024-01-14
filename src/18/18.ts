@@ -130,7 +130,11 @@ internalFields.map(f => {
 });
 h.print('convert internal fields map');
 var iMap = new Map<number, Coor[]>();
-internalFieldsMap.forEach((v,k) => iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]));
+var it = 0;
+internalFieldsMap.forEach((v,k) => {
+    h.print(it++);
+    iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]);
+});
 h.print("compare");
 for (var i = 0; i<= interestingX.last(); i++) {
     var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
