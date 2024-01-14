@@ -128,11 +128,14 @@ internalFields.map(f => {
     if (fields) fields.push(f);
     else internalFieldsMap.set(x, [f]);
 });
-internalFieldsMap.forEach((v,k) => internalFieldsMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]));
+h.print('convert internal fields map');
+var iMap = new Map<number, Coor[]>();
+internalFieldsMap.forEach((v,k) => iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]));
+h.print("compare");
 for (var i = 0; i<= interestingX.last(); i++) {
     var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
-    var oldLen = slens(internalFieldsMap.get(i)!);
-    if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", internalFieldsMap.get(i),")");
+    var oldLen = slens(iMap.get(i)!);
+    if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
 }
 
 
