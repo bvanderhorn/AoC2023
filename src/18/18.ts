@@ -77,8 +77,7 @@ var countContaining = (digplan: Dig[]) : number => {
     // sort on x, y
     verticalsByXList.sort((a,b) => a[0]-b[0]);
     verticalsByXList.map(v => v[1].sort((a,b) => a[0][1]-b[0][1]));
-
-    h.printv(v,verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
+    // h.printv(v,verticalsByXList.map(v => [v[0], v[1].map(l => l.toString())]).todict());
 
     // create lookups for vertical lines
     var interestingX = verticalsByXList.map(v => v[0]).sort((a,b) => a-b);
