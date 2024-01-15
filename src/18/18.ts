@@ -152,6 +152,7 @@ console.time("draw verticals");
 verticals.map(v => h.expand(v[0],v[1]).map(c => oldMap[c[0]-xmin][c[1]-ymin] = 'x'));
 console.timeEnd("draw verticals");
 
-oldMap.printc(x => x == 'x', 'r');
+var mapString = oldMap.stringc(x => x == 'x', 'r');
+h.print(mapString.addCoor([xmin, ymin]));
 
 
