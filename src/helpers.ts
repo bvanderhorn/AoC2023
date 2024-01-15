@@ -711,8 +711,8 @@ if (!String.prototype.addCoor) {
             var height = lines.length;
             var xwidth = [x0.toString().length, (x0 + height - 1).toString().length].max();
             var ywidth = [y0.toString().length, (y0 + width - 1).toString().length].max();
-            var xValues = range(x0, x0 + height).map(x => colorStr(x.toString(),color).padStart(xwidth, ' '));
-            var yValues = range(y0, y0 + width).map(x => x.toString().padStart(ywidth)).split('');
+            var xValues = range(x0, x0 + height).map(x => colorStr(x.toString().padStart(xwidth, ' '),color));
+            var yValues = range(y0, y0 + width).map(x => x.toString().padStart(ywidth, ' ')).split('');
             var ylines = range(0,ywidth).map(i => yValues.map(yv => yv[i]).join('').padStart(xwidth + width, ' ')).join('\n');
 
             return colorStr(ylines, color) + '\n' + lines.map((l,i) => xValues[i] + l).join('\n');
