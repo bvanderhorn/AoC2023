@@ -21,7 +21,8 @@ var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
         var [y1, y2] = [stretch.min(), stretch.max()];
         // x1 = y1 or x2 = y2: reduce existing stretch
         if (x1 == y1 ) {
-            stretch[0] = x2;
+            if (x2 == y2) stretches.splice(stretches.findIndex(s => h.equals2(s, stretch)), 1);
+            else stretch[0] = x2;
             return;
         }
         if (x2 == y2) {
@@ -41,7 +42,7 @@ var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
     stretches.push(newStretch);
 }
 
-var digplan = h.read("18", "digplan.txt", "ex2")
+var digplan = h.read("18", "digplan.txt")
     .match(/(\w)\s+(\d+)\s+\((#[\d\w]+)\)/)
     .map(d => ({dir: d[0].toLowerCase(), dist: +d[1], hex: d[2]}));
 h.print(digplan.slice(0,3));
@@ -61,7 +62,7 @@ nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.
 // h.print(verticals);
 
 // group vertical lines by x of end nodes
-var v = true; // verbose
+var v = false; // verbose
 var verticalsByXList : [number, Line[]][] = [];
 verticals.map(v => {v.map(([x,y]) => {
     var index = verticalsByXList.findIndex(v => v[0] == x);
@@ -85,9 +86,6 @@ var nextStretchTotals = 0;
 var lines = new Map<number, Coor[]|number>();
 for (var i = 0; i < interestingX.length; i++) {
     const curX = interestingX[i];
-    if (curX == -192) {
-        var henk  = 1;
-    }
     h.printv(v,"x:", curX);
     var switchStretchTotals = nextStretchTotals;
     var curVerticals: Line[] = verticalsByX.get(curX)!;
@@ -122,6 +120,7 @@ for (var i = 0; i < interestingX.length; i++) {
 h.print("part 1:",total);
 
 // old way comparison
+/* 
 var path = h.expandTrace(nodes);
 var internalFields: Coor[] = h.getSnakeInternalFields(null, path as Coor[], true, true);
 var internalFieldsMap = new Map<number, Coor[]>();
@@ -157,6 +156,7 @@ verticals.map(v => h.expand(v[0],v[1]).map(c => oldMap[c[0]-xmin][c[1]-ymin] = '
 console.timeEnd("draw verticals");
 
 var mapString = oldMap.stringc(x => x == 'x', 'r');
-h.print(mapString.addCoor([xmin, ymin]));
+h.print(mapString.addCoor([xmin, ymin])); 
+*/
 
 

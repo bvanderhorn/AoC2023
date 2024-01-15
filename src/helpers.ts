@@ -177,6 +177,8 @@ export function mergeIntervals(intervals: number[][], mergeConnected:boolean = f
 }
 
 export function mergeIntervals2(intervals: number[][], mergeConnected:boolean = false) : number[][] {
+    // merge overlapping intervals
+    if (intervals.length == 0) return [];
 	var int : number[][] = intervals.copy();
 	int.map(i => i.sort((a,b) => a-b));
 	int.sort((a,b) => a[0] - b[0]);
