@@ -142,12 +142,14 @@ h.print("total: new:",Array.from(lines.values()).map(x => typeof(x)=="number" ? 
 
 // print old
 console.time("old map");
+var xmin = internalFields.map(x => x[0]).min();
+var ymin = internalFields.map(x => x[1]).min();
 var oldMap = h.coorToMap(internalFields.map(x => [x[0], x[1], 1]), x => x == 1 ? '#' : '.');
 console.timeEnd("old map");
 
 // draw verticals
 console.time("draw verticals");
-verticals.map(v => h.expand(v[0],v[1]).map(c => oldMap[c[0]][c[1]] = 'x'));
+verticals.map(v => h.expand(v[0],v[1]).map(c => oldMap[c[0]-xmin][c[1]-ymin] = 'x'));
 console.timeEnd("draw verticals");
 
 oldMap.printc(x => x == 'x', 'r');
