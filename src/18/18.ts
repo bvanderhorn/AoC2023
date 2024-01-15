@@ -130,11 +130,7 @@ internalFields.map(f => {
 });
 h.print('convert internal fields map');
 var iMap = new Map<number, Coor[]>();
-var it = 0;
-internalFieldsMap.forEach((v,k) => {
-    // h.print(it++);
-    iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]);
-});
+internalFieldsMap.forEach((v,k) => iMap.set(k, h.numbersToIntervals(v.map(c => c[1])) as Coor[]));
 h.print("compare");
 
 for (var i = interestingX[0]; i<= interestingX.last(); i++) {
@@ -143,5 +139,17 @@ for (var i = interestingX[0]; i<= interestingX.last(); i++) {
     if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
 }
 h.print("total: new:",Array.from(lines.values()).map(x => typeof(x)=="number" ? x : slens(x as Coor[])).sum(), "old:", Array.from(iMap.values()).map(slens).sum());
+
+// print old
+console.time("old map");
+var oldMap = h.coorToMap(internalFields.map(x => [x[0], x[1], 1]), x => x == 1 ? '#' : '.');
+console.timeEnd("old map");
+
+// draw verticals
+console.time("draw verticals");
+verticals.map(v => h.expand(v[0],v[1]).map(c => oldMap[c[0]][c[1]] = 'x'));
+console.timeEnd("draw verticals");
+
+oldMap.printc(x => x == 'x', 'r');
 
 
