@@ -41,7 +41,7 @@ var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
     stretches.push(newStretch);
 }
 
-var digplan = h.read("18", "digplan.txt")
+var digplan = h.read("18", "digplan.txt", "ex2")
     .match(/(\w)\s+(\d+)\s+\((#[\d\w]+)\)/)
     .map(d => ({dir: d[0].toLowerCase(), dist: +d[1], hex: d[2]}));
 h.print(digplan.slice(0,3));
@@ -61,7 +61,7 @@ nodes.map((n,i) => (i%2==0 && evens || i%2==1 && !evens) ? verticals.push(nodes.
 // h.print(verticals);
 
 // group vertical lines by x of end nodes
-var v = false; // verbose
+var v = true; // verbose
 var verticalsByXList : [number, Line[]][] = [];
 verticals.map(v => {v.map(([x,y]) => {
     var index = verticalsByXList.findIndex(v => v[0] == x);
@@ -85,6 +85,9 @@ var nextStretchTotals = 0;
 var lines = new Map<number, Coor[]|number>();
 for (var i = 0; i < interestingX.length; i++) {
     const curX = interestingX[i];
+    if (curX == -192) {
+        var henk  = 1;
+    }
     h.printv(v,"x:", curX);
     var switchStretchTotals = nextStretchTotals;
     var curVerticals: Line[] = verticalsByX.get(curX)!;
@@ -136,7 +139,8 @@ h.print("compare");
 for (var i = interestingX[0]; i<= interestingX.last(); i++) {
     var newLen = typeof(lines.get(i)!) == "number" ? lines.get(i)! : slens(lines.get(i)! as Coor[]);
     var oldLen = slens(iMap.get(i)!);
-    if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
+    // if (newLen != oldLen) h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
+    h.print("x:", i, "new:",newLen ,"(",lines.get(i), "), old:", oldLen, "(", iMap.get(i),")");
 }
 h.print("total: new:",Array.from(lines.values()).map(x => typeof(x)=="number" ? x : slens(x as Coor[])).sum(), "old:", Array.from(iMap.values()).map(slens).sum());
 
