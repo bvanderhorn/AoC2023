@@ -3,6 +3,8 @@ import * as h from '../helpers';
 type Condition = [string, string, number];
 type Check = {to: string, condition: Condition|undefined};
 type Part = {x:number, m:number, a:number, s:number};
+type Range = [number, number];
+type PartRange = {x: Range, m: Range, a: Range, s: Range};
 
 var toRule = (rawRule: string) : [string, Check[]] => {
     var [id, rawChecks] = rawRule.match(/(\w+)\{([^\}]+)\}/)!.slice(1);
@@ -39,9 +41,18 @@ var checkPart = (part: Part) : boolean => {
     }
 }
 
+var applyCondition = (inRange: PartRange, condition: Condition) : [PartRange|undefined, PartRange|undefined] => {
+    // checks given part range against condition. Returns two part ranges: 
+    // [one for when condition is true, one for when condition is false]
+    var [x, op, m] = condition;
+    var valRange = x == 'x' ? inRange.x : x == 'm' ? inRange.m : x == 'a' ? inRange.a : inRange.s;
+}
+
 const [rawRules, rawParts] = h.read("19", "rulesparts.txt");
 
 const rules = rawRules.map(toRule).todict();
-h.print(rules.get("in"));
+// h.print(rules.get("in"));
 const parts : Part[] = rawParts.map((p:string) => eval('p = ' + p.replace(/=/g, ':')));
 h.print("part 1:", parts.filter(checkPart).map(value).sum());
+
+// part 2
