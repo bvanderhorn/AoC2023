@@ -585,6 +585,11 @@ export function numbersToIntervals(numbers:number[]) : number[][] {
     return mergeIntervals2(numbers.map(x => [x,x]), true);
 }
 
+export function removeAnsiColorsFromString(str:string) : string {
+    // https://stackoverflow.com/questions/25245716/remove-all-ansi-colors-styles-from-strings
+    return str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,'');
+}
+
 export class DoubleSet<T1> {
     private _setMap = new Map<T1, Set<T1>>();
 
@@ -707,7 +712,7 @@ if (!String.prototype.addCoor) {
         value: function addCoor(this: string, startXY:[number, number] = [0,0], color:string = 'y'): string {
             var [x0,y0] = startXY;
             var lines = this.split('\n');
-            var width = lines[0].replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,'').length;
+            var width = removeAnsiColorsFromString(lines[0]).length;
             var height = lines.length;
             var xwidth = [x0.toString().length, (x0 + height - 1).toString().length].max();
             var ywidth = [y0.toString().length, (y0 + width - 1).toString().length].max();
