@@ -46,6 +46,10 @@ var applyCondition = (inRange: PartRange, condition: Condition) : [PartRange|und
     // [one for when condition is true, one for when condition is false]
     var [x, op, m] = condition;
     var valRange = x == 'x' ? inRange.x : x == 'm' ? inRange.m : x == 'a' ? inRange.a : inRange.s;
+    var [min, max] = valRange;
+    if (op == '<' && m <= min || op == '>' && m >= max || op == '=' && (m < min || m > max)) return [undefined, inRange];
+    if (op == '<' && m >= max || op == '>' && m <= min || op == '=' && m == min) return [inRange, undefined];
+    
 }
 
 const [rawRules, rawParts] = h.read("19", "rulesparts.txt");
