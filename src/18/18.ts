@@ -29,6 +29,7 @@ var updateStretches = (stretches: Coor[], newStretch: Coor) : void => {
         var [y1, y2] = [stretch.min(), stretch.max()];
         // x1 = y1 or x2 = y2: reduce existing stretch
         if (x1 == y1 ) {
+            // x1 = y1 AND x2 = y2: remove existing stretch
             if (x2 == y2) stretches.splice(stretches.findIndex(s => h.equals2(s, stretch)), 1);
             else stretch[0] = x2;
             return;
