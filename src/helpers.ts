@@ -632,6 +632,18 @@ export class DoubleSet<T1> {
         this.forEach(x => values.push(x));
         return values;
     }
+    public min0() : T1 {
+	    return this.values().map(x => x[0]).min();
+    }
+    public min1() : T1 {
+	    return this.values().map(x => x[1]).min();
+    }
+     public max0() : T1 {
+	    return this.values().map(x => x[0]).mac();
+    }
+    public min0() : T1 {
+	    return this.values().map(x => x[2]).max();
+    }
 }
 
 export class MultiMap<K,V> {

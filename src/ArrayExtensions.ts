@@ -75,6 +75,7 @@ declare global {
         todict() : Map<any,any>;
         getCoor(matches: (x: any) => boolean) : number[] | undefined;
         getCoors(matches: (x: any) => boolean) : number[][] | undefined;
+	repeat(times:number|number[]) : any[];
 
         print() : void;
         print(j1:string) : void;

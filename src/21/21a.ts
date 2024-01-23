@@ -18,7 +18,7 @@ var calculate = (maxCount: number, part:number = 1) : number => {
         current.forEach(loc => getnb(loc).forEach(nb => {
             if (!last.has(nb)) newCurrent.add(nb);
         }));
-        if (counter == maxCount) printCurrent(newCurrent, current, last);
+        if (counter == maxCount) print3(newCurrent, current, last);
         [last, current] = [current, newCurrent];
         if (counter%2 == 0) evens += newCurrent.size; else odds += newCurrent.size;
         //h.printv(v,"evens:", evens, "odds:", odds);
@@ -26,11 +26,22 @@ var calculate = (maxCount: number, part:number = 1) : number => {
     console.timeEnd("part " + part);
     return maxCount%2 == 0 ? evens : odds;
 }
-var printCurrent = (newCurrent: h.DoubleSet<number>, current: h.DoubleSet<number>, last:h.DoubleSet<number>) : void => 
+var print3 = (newCurrent: h.DoubleSet<number>, current: h.DoubleSet<number>, last:h.DoubleSet<number>) : void => 
     garden.mapij((i,j,_) => newCurrent.has([i,j]) ? "O" 
                             : current.has([i,j]) ? "@"
                             : last.has([i,j]) ? "X"
                             : garden[i][j]).stringc(x => x === "@", "m").stringc(x => x == "X", "c").printc(x => x == "O", "r");
+var printCurrent = (current: h.DoubleSet<number>) : void => {
+	var [xmin, xmax, ymin, ymax] = [current.min0(), current.max0(), current.min1(), current.max1()];
+    var [xl, yl] = [garden.length, garden[0].length];
+    var dx = Math.floor(xmin/xl);
+    var xsize = Math.ceil(xmax/xl)-dx;
+    var dy = Math.floor(ymin/yl);
+    var ysize = Math.ceil(ymax/yl)-dy;
+    
+    garden.mapij((i,j,_) => current.has([i,j]) ? "O" 
+                            : garden[i][j]).printc(x => x == "O", "r");
+}
 
 const garden = h.read("21", "garden.txt").split('');
 // garden.stringc(x => x === "#", 'r', '','\n', 15).printc(x => x === "S", "c");
