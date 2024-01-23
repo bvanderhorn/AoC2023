@@ -15,28 +15,32 @@ type Pulse = {
 
 var printPulse = (p: Pulse) => (p.hl ? "high" : "low") + " => " + p.to.id;
 
-var applyCycle = (modules: Map<string, Module>, v:boolean = false) : [number, number] => {
+var applyCycle = (modules: Map<string, Module>, v:boolean = false) : [number, number, boolean] => {
     var highlow : [number, number] = [0, 0];
     var remaining : Pulse[] = [{hl:false, to: modules.get("broadcaster")!}];
+    var countLowRx = 0;
     while (remaining.length > 0) {
         var pulse = remaining.shift()!;
         h.printv(v, "pulse:", printPulse(pulse));
+        if (!pulse.hl && pulse.to.id == 'rx') countLowRx++;
         highlow[pulse.hl ? 1 : 0]++;
         var module = pulse.to;
-        if (!"%&".includes(module.type)) remaining.push(...module.to.map(m => ({hl: pulse.hl, to: m})));
+        var toPush: Pulse[] = [];
+        if (!"%&".includes(module.type)) toPush = module.to.map(m => ({hl: pulse.hl, to: m}));
         if (module.type == '%' && !pulse.hl) {
             // flip-flop
             module.state = !module.state;
-            remaining.push(...module.to.map(m => ({hl: module.state, to: m})));
+            toPush = module.to.map(m => ({hl: module.state, to: m}));
         }
         if (module.type == '&') {
             // conjunction
             module.state = !module.from.every(m => m.state);
-            remaining.push(...module.to.map(m => ({hl: module.state, to: m})));
+            toPush = module.to.map(m => ({hl: module.state, to: m}));
         }
+        remaining.push(...toPush);
     }
     h.printv(v,"cycle:", highlow);
-    return highlow;
+    return [highlow[0], highlow[1], countLowRx == 1];
 }
 
 var modules: Map<string, Module> = h.read("20", "modules.txt").map(x => {
@@ -54,6 +58,14 @@ modules.forEach(m => m.toIds.forEach(to => {
 }));
 
 // h.print(modules);
+
+// part 1
 var highlow = [0,0];
-for (const i of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules));
+for (const i of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules).slice(0,2));
 h.print("part 1:", highlow.prod());
+
+// part 2
+modules.forEach(m => m.state = false);
+var cycles = 0;
+while (++cycles) if (applyCycle(modules)[2]) break;
+h.print("part 2:", cycles);
