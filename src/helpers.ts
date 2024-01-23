@@ -626,6 +626,12 @@ export class DoubleSet<T1> {
         this._setMap.forEach(x => size +=x.size);
         return size;
     }
+
+    public values() : [T1,T1][] {
+        var values:[T1,T1][] = [];
+        this.forEach(x => values.push(x));
+        return values;
+    }
 }
 
 export class MultiMap<K,V> {
