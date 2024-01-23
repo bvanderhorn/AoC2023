@@ -8,12 +8,12 @@
 %xm -> db
 %vz -> cr, vc
 %qq -> qm, gf
-&xn -> th
+    &xn -> th
 %nn -> ff, db
 %gx -> cd
-&qn -> th
+    &qn -> th
 %qk -> vc
-&xf -> th
+    &xf -> th
 %qj -> xm, db
 %fn -> pr, gf
 %sf -> bp
@@ -24,15 +24,15 @@
 %sb -> ks, vc
 %ln -> gf, qq
 %bx -> qx, qp
-broadcaster -> sr, ch, hd, bx
+    broadcaster -> sr, ch, hd, bx
 %ch -> db, mc
 %ds -> cc
-&qx -> cb, cv, bx, xz, vm, zl
+    &qx -> cb, cv, bx, xz, vm, zl
 %bp -> db, jz
-&zl -> th
+    &zl -> th
 %vl -> gf, fj
-&db -> ff, ds, sf, ch, cc, xf
-&th -> rx
+    &db -> ff, ds, sf, ch, cc, xf
+    &th -> rx
 %cr -> gx, vc
 %sr -> gf, vl
 %lr -> sb
@@ -46,13 +46,13 @@ broadcaster -> sr, ch, hd, bx
 %ff -> pl
 %qp -> cb, qx
 %pf -> qx
-&vc -> lr, hd, ks, qn, gx, nh, hv
+    &vc -> lr, hd, ks, qn, gx, nh, hv
 %qm -> gm
 %nh -> hv
 %rz -> qx, cv
 %ks -> vz
 %fj -> zd
-&gf -> fj, qm, xn, sr
+    &gf -> fj, qm, xn, sr
 %pr -> gf
 %cd -> pm, vc
 %hd -> vc, nh

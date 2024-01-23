@@ -21,7 +21,7 @@ var applyCycle = (modules: Map<string, Module>, v:boolean = false, v2:boolean = 
     var highLowRx: [number, number] = [0, 0];
     while (remaining.length > 0) {
         var pulse = remaining.shift()!;
-        h.printv(v, "pulse:", printPulse(pulse));
+        //h.printv(v, "pulse:", printPulse(pulse));
         if (pulse.to.id == 'rx') highLowRx[pulse.hl ? 0 : 1]++;
         highlow[pulse.hl ? 0 : 1]++;
         var module = pulse.to;
@@ -39,12 +39,12 @@ var applyCycle = (modules: Map<string, Module>, v:boolean = false, v2:boolean = 
         }
         remaining.push(...toPush);
     }
-    h.printv(v,"cycle:", highlow);
-    h.printv(v2, "cycle", cycles, ", highLowRx:", highLowRx);
-    return [highlow[0], highlow[1], highLowRx[1] == 1];
+    //h.printv(v,"cycle:", highlow);
+    //h.printv(v2, "cycle", cycles, ", highLowRx:", highLowRx);
+    return [highlow[0], highlow[1], highLowRx[1] > 0];
 }
 
-var modules: Map<string, Module> = h.read("20", "modules.txt").map(x => {
+var modules: Map<string, Module> = h.read("20", "modules.txt").mape(x => x.trim()).map(x => {
     var [typeId, to] = x.split(" -> ");
     var type = typeId.slice(0,1);
     var id = "%&".includes(type) ? typeId.slice(1) : typeId;
@@ -66,7 +66,16 @@ for (const i of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules).s
 h.print("part 1:", highlow.prod());
 
 // part 2
-modules.forEach(m => m.state = false);
-var cycles = 0;
-while (++cycles) if (applyCycle(modules, false, false)[2]) break;
-h.print("part 2:", cycles);
+var v2 = true; // verbose
+var broadcaster = modules.get("broadcaster")!;
+var cyclesToLowRx: number[] = broadcaster.toIds.map((toId:string) => {
+    h.printv(v2,"toId:", toId);
+    modules.forEach(m => m.state = false);
+    var cycles = 0;
+    broadcaster.to = [modules.get(toId)!];
+    while (++cycles) if (applyCycle(modules, false, false)[2]) break;
+    return cycles;
+});
+
+h.print("cycles:", cyclesToLowRx);
+
