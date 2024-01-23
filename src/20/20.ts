@@ -66,16 +66,23 @@ for (const i of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules).s
 h.print("part 1:", highlow.prod());
 
 // part 2
+// wrote down the connections on paper. 
+// As it turns out, each of the 'to' nodes of the broadcaster has a completely independent path to &th => rx.
+// In the following, I simulate the cycles for each 'pillar' independently, and then calculate the smallest common multiple of the cycles.
 var v2 = true; // verbose
 var broadcaster = modules.get("broadcaster")!;
+// simulate cycle for each 'pillar' of to nodes of the broadcaster
 var cyclesToLowRx: number[] = broadcaster.toIds.map((toId:string) => {
     h.printv(v2,"toId:", toId);
-    modules.forEach(m => m.state = false);
+    modules.forEach(m => m.state = false);      // reset module states
     var cycles = 0;
-    broadcaster.to = [modules.get(toId)!];
+    broadcaster.to = [modules.get(toId)!];      // update broadcaster 'to' nodes to only contain the current 'pillar'
+    // update final conjunction nodes (before merged and inverted by &th) of all other 'pillars' to be 'high' (i.e. true)
+    broadcaster.toIds.filter(id => id != toId).map(id => modules.get(id)!.to.map(x => x.to!.map(y => y.state = true)));
     while (++cycles) if (applyCycle(modules, false, false)[2]) break;
     return cycles;
 });
 
 h.print("cycles:", cyclesToLowRx);
+h.print("part 2:", h.smallestCommonMultiple(cyclesToLowRx));
 
