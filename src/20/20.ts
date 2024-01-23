@@ -62,7 +62,7 @@ modules.forEach(m => m.toIds.forEach(to => {
 
 // part 1
 var highlow = [0,0];
-for (const i of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules).slice(0,2));
+for (const _ of h.range(0,1e3)) highlow = highlow.plusEach(applyCycle(modules).slice(0,2));
 h.print("part 1:", highlow.prod());
 
 // part 2
