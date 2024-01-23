@@ -16,12 +16,14 @@ const rocks = (garden.getCoors(x => x === "#")! as Coor[]).map(toId).toSet();
 const start = toId(garden.getCoor(x => x === "S")! as Coor);
 
 // part 1
-var locations : Set<number> = [start].toSet();
+const locations1 : Set<number> = [start].toSet();
+const locations2 = new Set<number>();
+var [locations, newLocations] = [locations1, locations2];
 console.time("part 1");
-for (const _ of h.range(0,64)) {
-    var newLocations = new Set<number>();
+for (const i of h.range(0,64)) {
+    [locations, newLocations] = i%2 == 0 ? [locations1, locations2] : [locations2, locations1];
+    newLocations.clear();
     locations.forEach(location => getnb(location).forEach(x => newLocations.add(x)));
-    locations = newLocations;
 }
 console.timeEnd("part 1");
 h.print("part 1:", locations.size);
