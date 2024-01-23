@@ -620,6 +620,12 @@ export class DoubleSet<T1> {
     public forEach = (callbackfn: (value: [T1,T1]) => void) : void => {
         this._setMap.forEach((set, value1) => set.forEach(value2 => callbackfn([value1, value2])));
     }
+
+    public get size() : number {
+        var size = 0;
+        this._setMap.forEach(x => size +=x.size);
+        return size;
+    }
 }
 
 export class MultiMap<K,V> {

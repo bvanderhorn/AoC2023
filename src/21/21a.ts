@@ -17,13 +17,11 @@ var calculate = (maxCount: number, part:number = 1) : number => {
         //h.printv(v, "i:", counter, "last:", [...last.keys()], "current:", [...current.keys()]);
         var newCurrent = new h.DoubleSet<number>();
         current.forEach(loc => getnb(loc).forEach(nb => {
-            if (!last.has(nb) && !newCurrent.has(nb)) {
-                newCurrent.add(nb);
-                if (counter%2 == 0) odds++; else evens++;
-            }
+            if (!last.has(nb)) newCurrent.add(nb);
         }));
         last = current;
         current = newCurrent;
+        if (counter%2 == 0) odds += newCurrent.size; else evens += newCurrent.size;
         //h.printv(v,"evens:", evens, "odds:", odds);
     }
     console.timeEnd("part " + part);
