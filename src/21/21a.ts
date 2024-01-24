@@ -1,8 +1,7 @@
 import * as h from '../helpers';
 type Coor = [number, number];
 var getLocalNb = (loc: number[]) : number[][] => [[loc[0]-1, loc[1]], [loc[0]+1, loc[1]], [loc[0], loc[1]-1], [loc[0], loc[1]+1]];
-var reduce = (loc: number[]) : Coor => [(loc[0]%garden.length + garden.length)%garden.length, 
-                                            (loc[1]%garden[0].length + garden[0].length)%garden[0].length];
+var reduce = (loc: number[]) : Coor => [(loc[0]%size + size)%size, (loc[1]%size + size)%size];
 var isRock = (loc: number[]) : boolean => rocks.has(reduce(loc));
 var getnb = (loc: number[]) : Coor[] => getLocalNb(loc).filter(x => !isRock(x)) as Coor[];
 var calculate = (maxCount: number, odd: boolean|undefined = undefined, v:boolean = false) : number => {
@@ -28,7 +27,7 @@ var calculate = (maxCount: number, odd: boolean|undefined = undefined, v:boolean
 }
 
 var calculateSmart = (m: number) : number => {
-    var odd: boolean = (m + Math.floor(garden.length/2)) % 2 == 1;
+    var odd: boolean = (m + half) % 2 == 1;
     var oddRoot = odd ? m+1 : m;
     var oddSign = odd ? -1 : 1;
     var evenRoot = odd ? m : m+1;
@@ -48,7 +47,7 @@ var square = (odd:boolean) : number => {
     return all - rocks.values().filter(r => (r[0]+r[1])%2 == (odd ? 1 : 0)).length;
 }
 //get all the fields in the middle diamond of the garden (odd or even compared to the start)
-var diamond = (odd:boolean) : number => calculate(Math.floor(garden.length/2), odd, false);
+var diamond = (odd:boolean) : number => calculate(half, odd);
 var corners = (odd:boolean) : number => square(odd) - diamond(odd);
 var print3 = (newCurrent: h.DoubleSet<number>, current: h.DoubleSet<number>, last:h.DoubleSet<number>) : void => 
     garden.mapij((i,j,_) => newCurrent.has([i,j]) ? "O" 
@@ -73,6 +72,8 @@ var printCurrent = (current: h.DoubleSet<number>) : void => {
 }
 
 const garden = h.read("21", "garden.txt").split('');
+const size = garden.length;
+const half = Math.floor(size/2);
 // garden.stringc(x => x === "#", 'r', '','\n', 15).printc(x => x === "S", "c");
 const rocks = new h.DoubleSet<number>(garden.getCoors(x => x === "#")! as Coor[]);
 const start = garden.getCoor(x => x === "S")! as Coor;
@@ -84,6 +85,6 @@ h.print("(", 26501365, " - 65) % 131:", (26501365-65)%131);
 h.print(26501365, "/131 :",26501365/131 );
 var m = Math.floor(26501365/131);
 m = 2;
-h.print("part 2 brute force:", calculate(m*garden.length + Math.floor(garden.length/2), undefined, false));
+h.print("part 2 brute force:", calculate(m*size + half, undefined, false));
 h.print("part 2 smart:", calculateSmart(m));
 
