@@ -19,13 +19,24 @@ var calculate = (maxCount: number, part:number = 1) : number => {
             if (!last.has(nb)) newCurrent.add(nb);
         }));
         // if (counter == maxCount) print3(newCurrent, current, last);
-        if (counter == maxCount) printCurrent(newCurrent);
+        // if (counter == maxCount) printCurrent(newCurrent);
         [last, current] = [current, newCurrent];
         if (counter%2 == 0) evens += newCurrent.size; else odds += newCurrent.size;
         //h.printv(v,"evens:", evens, "odds:", odds);
     }
     console.timeEnd("part " + part);
     return maxCount%2 == 0 ? evens : odds;
+}
+var square = (odd:boolean) : number => {
+    // get all fields in the garden that are odd or even compared to the start 
+    // (which is in the middle => an EVEN sum of coordinates), and substract the rocks
+    var all = garden.mapij((i,j,_) => (i+j)%2 == (odd ? 1 : 0) ? 1 : 0).sum0().sum();
+    return all - rocks.values().filter(r => (r[0]+r[1])%2 == (odd ? 1 : 0)).length;
+}
+var corners = (odd:boolean) : number => {
+    // return the odd or even fields inside the outer corners
+    var all = garden.mapij((i,j,_) => (i+j)%2 == (odd ? 1 : 0) && start.manhattan([i,j]).sum() > Math.ceil(garden.length/2) ? 1 : 0).sum0().sum();
+    return all - rocks.values().filter(r => (r[0]+r[1])%2 == (odd ? 1 : 0) && start.manhattan(r).sum() > Math.ceil(garden.length/2)).length;
 }
 var print3 = (newCurrent: h.DoubleSet<number>, current: h.DoubleSet<number>, last:h.DoubleSet<number>) : void => 
     garden.mapij((i,j,_) => newCurrent.has([i,j]) ? "O" 
@@ -49,11 +60,27 @@ var printCurrent = (current: h.DoubleSet<number>) : void => {
         .printc(x => x == "O", "r");
 }
 
-const garden = h.read("21", "garden.txt", "ex3").split('');
+const garden = h.read("21", "garden.txt").split('');
 // garden.stringc(x => x === "#", 'r', '','\n', 15).printc(x => x === "S", "c");
 const rocks = new h.DoubleSet<number>(garden.getCoors(x => x === "#")! as Coor[]);
 const start = garden.getCoor(x => x === "S")! as Coor;
 
 h.print("part 1:", calculate(27, 1));
-// h.print("part 2:", calculate(1E3, 2));
+
+// part 2
 h.print("(", 26501365, " - 65) % 131:", (26501365-65)%131);
+h.print(26501365, "/131 :",26501365/131 );
+
+var m = Math.floor(26501365/131);
+m = 0;
+var oddRoot = m%2 == 0 ? m+1 : m;
+var oddSign = m%2 == 0 ? -1 : 1;
+var evenRoot = m%2 == 0 ? m : m+1;
+var evenSign = m%2 == 0 ? 1 : -1;
+h.print("oddRoot:", oddRoot, "oddSign:", oddSign, "evenRoot:", evenRoot, "evenSign:", evenSign);
+var [sqOdd, sqEven, corOdd, corEven] = [square(true), square(false), corners(true), corners(false)];
+h.print("square, odd:", sqOdd, "even:", sqEven, "corners, odd:", corOdd, "even:", corEven);
+h.print(sqOdd + sqEven + rocks.size, " = 131^2:", 131**2);
+h.print(corOdd + corEven + rocks.values().filter(r => start.manhattan(r).sum() > 65).length, " = 131^2 - 65^2:", 131**2 - 65**2);
+
+h.print("part 2:", (oddRoot**2)*sqOdd + oddSign*oddRoot*corOdd + evenRoot**2*sqEven + evenSign*evenRoot*corEven);
