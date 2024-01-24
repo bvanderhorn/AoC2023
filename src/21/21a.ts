@@ -36,7 +36,6 @@ var print3 = (newCurrent: h.DoubleSet<number>, current: h.DoubleSet<number>, las
                             .stringc(x => x == "X", "c")
                             .printc(x => x == "O", "r");
 var printCurrent = (current: h.DoubleSet<number>) : void => {
-    h.print("current:", current.values());
 	var [xmin, xmax, ymin, ymax] = [current.min0(), current.max0(), current.min1(), current.max1()];
     var [xl, yl] = [garden.length, garden[0].length];
     var dx = Math.floor(xmin/xl);
@@ -58,6 +57,3 @@ const start = garden.getCoor(x => x === "S")! as Coor;
 h.print("part 1:", calculate(27, 1));
 // h.print("part 2:", calculate(1E3, 2));
 h.print("(", 26501365, " - 65) % 131:", (26501365-65)%131);
-var repeat = garden.repeat([2,3]);
-repeat[0][0] = "Q";
-// repeat.print();
