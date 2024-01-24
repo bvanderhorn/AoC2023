@@ -75,7 +75,7 @@ declare global {
         todict() : Map<any,any>;
         getCoor(matches: (x: any) => boolean) : number[] | undefined;
         getCoors(matches: (x: any) => boolean) : number[][] | undefined;
-	repeat(times:number|number[]) : any[];
+	    repeat(times:number[]) : any[];
 
         print() : void;
         print(j1:string) : void;
@@ -927,6 +927,19 @@ if (!Array.prototype.getCoors) {
                 }
             }
             return result.length == 0 ? undefined : result;
+        }
+    });
+}
+
+if (!Array.prototype.repeat) {
+    // repeat array a given number of times
+    Object.defineProperty(Array.prototype, 'repeat', {
+        enumerable: false, 
+        writable: false, 
+        configurable: false, 
+        value: function repeat(this: any[], times:number[]): any[] {
+            if (Array.isArray(this[0])) return Array(times[0]).fill(this.map(x => x.repeat(times.slice(1)))).flat().copy();
+            return Array(times[0]).fill(this).flat().copy();
         }
     });
 }

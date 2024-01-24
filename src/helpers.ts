@@ -633,16 +633,16 @@ export class DoubleSet<T1> {
         return values;
     }
     public min0() : T1 {
-	    return this.values().map(x => x[0]).min();
+	    return this.values().map(x => x[0]).min() as T1;
     }
     public min1() : T1 {
-	    return this.values().map(x => x[1]).min();
+	    return this.values().map(x => x[1]).min() as T1;
     }
      public max0() : T1 {
-	    return this.values().map(x => x[0]).mac();
+	    return this.values().map(x => x[0]).max() as T1;
     }
-    public min0() : T1 {
-	    return this.values().map(x => x[2]).max();
+    public max1() : T1 {
+	    return this.values().map(x => x[1]).max() as T1;
     }
 }
 
