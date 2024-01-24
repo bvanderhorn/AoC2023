@@ -26,21 +26,8 @@ var calculate = (maxCount: number, odd: boolean|undefined = undefined, v:boolean
         : maxCount%2 == 0 ? evens : odds;
 }
 
-var calculateSmart = (m: number,v:boolean = false) : number => {
-    //h.print("m:", m);
-    var oddRoot = m+1;
-    var oddSign = -1;
-    var evenRoot = m;
-    var evenSign = 1;
-    // h.print("oddRoot:", oddRoot, "oddSign:", oddSign, "evenRoot:", evenRoot, "evenSign:", evenSign);
-    var [sqOdd, sqEven, corOdd, corEven] = [square(true), square(false), corners(true), corners(false)];
-    // h.print("square, odd:", sqOdd, "even:", sqEven, "corners, odd:", corOdd, "even:", corEven);
-    // h.print(sqOdd + sqEven + rocks.size, " = 131^2:", garden.length**2);
-    // h.print(corOdd + corEven + rocks.values().filter(r => start.manhattan(r).sum() > Math.floor(garden.length/2)).length, " = 0.5*(n-1)*(n+1) = 65*132:", 0.5*(garden.length-1)*(garden.length+1));
-    h.printv(v, oddRoot, "^2 *[] odd (",sqOdd,") ", oddSign == 1 ? "+" : "-", oddRoot, "* c(odd) (", corOdd, ") + ", 
-        evenRoot, "^2 *[] even (",sqEven,") ", evenSign == 1 ? "+" : "-", evenRoot, "* c(even) (", corEven, ")");
-    return (oddRoot**2)*sqOdd + oddSign*oddRoot*corOdd + (evenRoot**2)*sqEven + evenSign*evenRoot*corEven;
-}
+var calculateSmart = (m: number,v:boolean = false) : number => 
+    ((m+1)**2)*square(true) - (m+1)*corners(true) + (m**2)*square(false) + m*corners(false)- 0.5*m*(m+1)*8; // found out consistent error of 8*0.5*m*(m+1) by trial and error
 var square = (odd:boolean) : number => {
     // get all fields in the garden that are odd or even compared to the start 
     // (which is in the middle => an EVEN sum of coordinates), and substract the rocks
@@ -85,8 +72,5 @@ h.print("part 1:", calculate(64, undefined, false));
 h.print("(", 26501365, " - 65) % 131:", (26501365-65)%131);
 h.print(26501365, "/131 :",26501365/131 );
 var m = Math.floor(26501365/131);
-// m = 5;
 // var brute = calculate(m*size + half, undefined, false) ;
-var smart = calculateSmart(m) - 0.5*m*(m+1)*8; // found out consistent error of 8*0.5*m*(m+1) by trial and error
-h.print("part 2:", smart);
-
+h.print("part 2:", calculateSmart(m));
