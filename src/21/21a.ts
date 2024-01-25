@@ -27,7 +27,10 @@ var calculate = (maxCount: number, odd: boolean|undefined = undefined, v:boolean
 }
 
 var calculateSmart = (m: number,v:boolean = false) : number => 
-    ((m+1)**2)*square(true) - (m+1)*corners(true) + (m**2)*square(false) + m*corners(false)- 0.5*m*(m+1)*8; // found out consistent error of 8*0.5*m*(m+1) by trial and error
+    ((m+1)**2)*square(true) - (m+1)*corners(true) + (m**2)*square(false) + m*corners(false)
+    - 0.5*m*(m+1)*8; // found out consistent error of 8*0.5*m*(m+1) by trial and error
+                     // note: this probably has to do with the fact that the original diamond 
+                     // did not take into account the effect of the rocks in the corners
 var square = (odd:boolean) : number => {
     // get all fields in the garden that are odd or even compared to the start 
     // (which is in the middle => an EVEN sum of coordinates), and substract the rocks
