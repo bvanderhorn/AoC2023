@@ -9,8 +9,8 @@ var getdir = (from: Coor, to: Coor) : string => to[0] == from[0] ? (to[1] > from
 var toId = (coor: Coor) : number => coor[0]*1000 + coor[1];
 var upwards = (cur: Coor, next: Coor) : boolean => {
     var value = trails[next[0]][next[1]];
-    if (value == '#') return false;
-    if (value == '.') return true;
+    if (value == '#') return true;
+    if (value == '.') return false;
     var dir = getdir(cur, next);
     return dir == 'u' && value == 'v' || dir == 'd' && value == '^' || dir == 'l' && value == '>' || dir == 'r' && value == '<';
 }
@@ -33,10 +33,17 @@ while (toExplore.length > 0) {
     var cur = curstart;
     while (true) {
         // treat special cases (we are at start or end)
-        if (h.equals2(cur.coor, startCoor)) break;
+        if (h.equals2(cur.coor, startCoor) && cur.dir == 'u') break;
         if (h.equals2(cur.coor, endCoor)) {
             validTrails.push({start: curstart, end: cur, length: steps});
             break;
+        }
+        if (h.equals2(cur.coor, curstart.coor)) {
+            // we are at the start of the current trail, move in direction of dir
+            var nextPos = h.getnb(cur.coor, trails.length, trails[0].length, cur.dir)[0] as Coor;
+            steps++;
+            cur = {id: cur.dir + toId(nextPos), coor: nextPos, dir: cur.dir};
+            continue;
         }
 
         // treat normal cases (we are on a junction or on a straight trail)
@@ -45,9 +52,11 @@ while (toExplore.length > 0) {
         if (nb.length > 1) {
             // we are on a junction
             nb = nb.filter(n => !upwards(cur.coor, n)); // filter out upwards trails
-            nb.map(n => getdir(cur.coor, n)).forEach(d => toExplore.push({id: d + toId(cur.coor), coor: cur.coor, dir: d})); // add remaining to toExplore
+            // add remaining to toExplore (if not already visited or in toExplore)
+            var toExplores = nb.map(n => getdir(cur.coor, n)).map(d => { return {id: d + toId(cur.coor), coor: cur.coor, dir: d} as Loc}); 
+            toExplores.filter(t => !visited.has(t.id) && !toExplore.includes(t)).forEach(t => toExplore.push(t));
 
-            // add the current trail to the valid trails (if not all trails are upwards)
+            // add the current trail to the valid trails (if not all following trails are upwards)
             if (nb.length > 0) validTrails.push({start: curstart, end: cur, length: steps});
             break;
         }
