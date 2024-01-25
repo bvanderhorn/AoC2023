@@ -46,6 +46,10 @@ export function print(...input:any[]): void {
     console.log(...input);
 }
 
+export function printobj(input:any, depth: number|null = null): void {
+    console.dir(input, {depth:depth});
+}
+
 export function printu(...input:any[]): void {
     // print while clearing the last n lines in the terminal,
     // where n is the number of lines in the input

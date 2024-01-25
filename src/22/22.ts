@@ -2,6 +2,7 @@ import * as h from '../helpers';
 type Coor = [number, number, number];
 class Brick {
     public supportedBy: Brick[] = [];
+    public supports: Brick[] = [];
     constructor(public value: [Coor, Coor]) {
 
     }
@@ -20,9 +21,9 @@ class Brick {
     
 }
 
-var bricks : Brick[] = h.read("22", "bricks.txt", "ex").split("~").mape(x => new Brick(x.split(",").tonum()));
+var bricks : Brick[] = h.read("22", "bricks.txt").split("~").mape(x => x.split(",").tonum()).map(x => new Brick(x));
 bricks.sort((a,b) => a.zmin - b.zmin);
-h.print(bricks.slice(0,3));
+// h.printobj(bricks.slice(0,3));
 
 // drop the bricks
 var droppedBricks: Brick[] = [];
@@ -30,9 +31,16 @@ for (const b of bricks){
     for (var i = 0; i < b.zmin; i++) {
         var testBrick : Brick = b.drop(i);
         var newBrick : Brick = b.drop(i-1);
-        if (droppedBricks.some(db => db.overlaps(testBrick))) {
+        var support: number[] = droppedBricks.map((db,i) => db.overlaps(testBrick) ? i : -1).filter(x => x != -1);
+        if (support.length > 0) {
+            newBrick.supportedBy = support.map(i => droppedBricks[i]);
+            support.forEach(i => droppedBricks[i].supports.push(newBrick));
             droppedBricks.push(newBrick);
             break;
         } else if (i == b.zmin-1) droppedBricks.push(testBrick);
     }
 }
+// h.printobj(droppedBricks[0],4);
+
+// all bricks that do not exclusively support other bricks, can be removed
+h.print("part 1:", droppedBricks.filter(b => b.supports.filter(s => s.supportedBy.length == 1).length == 0).length);
