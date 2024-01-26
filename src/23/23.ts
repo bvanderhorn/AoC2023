@@ -25,7 +25,7 @@ var upwards = (cur: Coor, next: Coor) : boolean => {
     return dir == 'u' && value == 'v' || dir == 'd' && value == '^' || dir == 'l' && value == '>' || dir == 'r' && value == '<';
 }
 
-var reduceToTrails = (part: number) : Map<number, Trail[]> => {
+var reduce = (part: number) : Map<number, Trail[]> => {
     // reduce the problem to a set of valid trails between start, junctions and end
     const visited = new Map<string, Loc>();
     const validTrails = new Map<number, Trail[]>();
@@ -80,7 +80,7 @@ var reduceToTrails = (part: number) : Map<number, Trail[]> => {
     return validTrails;
 }
 
-var getFullSets = (validTrails: Map<number, Trail[]>) : [number, Map<number, TrailSet[]>] => {
+var solve = (validTrails: Map<number, Trail[]>) : [number, Map<number, TrailSet[]>] => {
     // cycle all possible combinations of valid trails from start to end, without visiting the same node twice
     const remaining : TrailSet[] = [{nodes: [toId(start.coor)], length: 0, head: start} as TrailSet];
     const fullTrails = new Map<number, TrailSet[]>();
@@ -108,7 +108,7 @@ var getFullSets = (validTrails: Map<number, Trail[]>) : [number, Map<number, Tra
     return [maxLength, fullTrails];
 }
 
-const trails = h.read("23", "trails.txt", "ex").split('');
+const trails = h.read("23", "trails.txt").split('');
 
 const startCoor = [0, trails[0].getCoor(x => x == ".")![0]] as Coor;
 const start = {dirId: "start", id: toId(startCoor), coor: startCoor, dir: "d"} as Loc;
@@ -116,16 +116,22 @@ const endCoor = [trails.length-1, trails[trails.length-1].getCoor(x => x == ".")
 const endId = toId(endCoor);
 
 // part 1
-var validTrails = reduceToTrails(1);
-var [maxLength, fullTrails] = getFullSets(validTrails);
-
-// var maxSets = fullTrails.get(maxLength)!;
-// h.printobj(maxSets);
-h.print("part 1:", maxLength);
+var validTrails1 = reduce(1);
+var vsize1 = 0;
+validTrails1.forEach(v => vsize1 += v.length);
+h.print("nof valid trails (part 1):", vsize1);
+var [maxLength1, _] = solve(validTrails1);
+h.print("part 1:", maxLength1);
 
 // part 2
-validTrails = reduceToTrails(2);
-var [maxLength, fullTrails] = getFullSets(validTrails);
-// var maxSets = fullTrails.get(maxLength)!;
-// h.printobj(maxSets);
-h.print("part 2:", maxLength);
+console.time("build trails");
+var validTrails2 = reduce(2);
+var vsize2 = 0;
+validTrails2.forEach(v => vsize2 += v.length);
+h.print("nof valid trails (part 2):", vsize2);
+h.printobj(validTrails2);
+console.timeEnd("build trails");
+// console.time("solve");
+// var [maxLength2, _] = solve(validTrails2);
+// console.timeEnd("solve");
+// h.print("part 2:", maxLength2);
