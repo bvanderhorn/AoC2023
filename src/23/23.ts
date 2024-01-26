@@ -99,16 +99,16 @@ var solve = (validTrails: Map<number, Trail[]>, part: number = 1) : [number, Map
         var nextTrails = validTrails.get(curSet.nodes.last())!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
 
         // if part 2: if any neighbour only has one remaining unvisited neighbour: take that one
+        // this incentifies the algorithm to find all hamiltonian paths
         if (part == 2) {
+            var lonesomeNb : Trail[] = [];
             for (const nt of nextTrails) {
                 var nb: Trail[]|undefined = validTrails.get(nt.endId);
-                if (nb == undefined) continue;
+                if (nb == undefined) continue; // don't break if coincidentally inspecting the last node (which has no leaving trails)
                 nb = nb.filter(t => !curSet.nodes.includes(t.endId));
-                if (nb.length == 1) {
-                    nextTrails = [nt];
-                    break;
-                }
+                if (nb.length == 1) lonesomeNb.push(nt);
             }
+            if (lonesomeNb.length > 0) nextTrails = lonesomeNb;
         }
 
         nextTrails.forEach(t => {
@@ -143,6 +143,7 @@ h.print("nof valid trails (part 2):", vsize2);
 // h.printobj(validTrails2);
 console.timeEnd("build trails");
 console.time("solve");
-var [maxLength2, _] = solve(validTrails2,2);
+var [maxLength2, fullTrails] = solve(validTrails2,2);
 console.timeEnd("solve");
 h.print("part 2:", maxLength2);
+h.printobj(fullTrails.get(maxLength2));
