@@ -80,7 +80,7 @@ var reduce = (part: number) : Map<number, Trail[]> => {
     return validTrails;
 }
 
-var solve = (validTrails: Map<number, Trail[]>) : [number, Map<number, TrailSet[]>] => {
+var solve = (validTrails: Map<number, Trail[]>, part: number = 1) : [number, Map<number, TrailSet[]>] => {
     // cycle all possible combinations of valid trails from start to end, without visiting the same node twice
     const remaining : TrailSet[] = [{nodes: [toId(start.coor)], length: 0, head: start} as TrailSet];
     const fullTrails = new Map<number, TrailSet[]>();
@@ -96,9 +96,20 @@ var solve = (validTrails: Map<number, Trail[]>) : [number, Map<number, TrailSet[
         }
 
         // else: gather next trails, re-add to remaining
-        var nextTrails = validTrails.get(curSet.nodes.last())!
-            .filter(t => t.start.dir != opposite(curSet.head.dir)) // filter out any trails in wrong direction
-            .filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
+        var nextTrails = validTrails.get(curSet.nodes.last())!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
+
+        // if part 2: if any neighbour only has one remaining unvisited neighbour: take that one
+        if (part == 2) {
+            for (const nt of nextTrails) {
+                var nb: Trail[]|undefined = validTrails.get(nt.endId);
+                if (nb == undefined) continue;
+                nb = nb.filter(t => !curSet.nodes.includes(t.endId));
+                if (nb.length == 1) {
+                    nextTrails = [nt];
+                    break;
+                }
+            }
+        }
 
         nextTrails.forEach(t => {
             var nextSet = {nodes: curSet.nodes.concat([t.endId]), length: curSet.length + t.length, head: t.end} as TrailSet;
@@ -129,9 +140,9 @@ var validTrails2 = reduce(2);
 var vsize2 = 0;
 validTrails2.forEach(v => vsize2 += v.length);
 h.print("nof valid trails (part 2):", vsize2);
-h.printobj(validTrails2);
+// h.printobj(validTrails2);
 console.timeEnd("build trails");
-// console.time("solve");
-// var [maxLength2, _] = solve(validTrails2);
-// console.timeEnd("solve");
-// h.print("part 2:", maxLength2);
+console.time("solve");
+var [maxLength2, _] = solve(validTrails2,2);
+console.timeEnd("solve");
+h.print("part 2:", maxLength2);
