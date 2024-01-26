@@ -1,9 +1,19 @@
-import { get } from 'http';
 import * as h from '../helpers';
 type Coor = [number, number];
-type Loc = {id: string, coor: Coor, dir: string};
-type Trail = {start: Loc, end: Loc, length: number};
+type Loc = {dirId: string, id:number, coor: Coor, dir: string};
+type Trail = {start: Loc, startId: number, end: Loc, endId:number, length: number};
+type TrailSet = {nodes: number[], length: number, head: Loc};
 
+var push = (trailList: Map<number, Trail[]>, start: Loc, end: Loc, length: number) => {
+    var startId = toId(start.coor);
+    var endId = toId(end.coor);
+    if (!trailList.has(startId)) trailList.set(startId, []);
+    trailList.get(startId)!.push({start: start, startId: startId, end: end, endId: endId, length: length} as Trail);
+}
+var pushSet = (trailList: Map<number, TrailSet[]>, set: TrailSet) => {
+    if (!trailList.has(set.length)) trailList.set(set.length, []);
+    trailList.get(set.length)!.push(set);
+}
 var opposite = (dir: string) : string => dir == 'u' ? 'd' : dir == 'd' ? 'u' : dir == 'l' ? 'r' : 'l';
 var getdir = (from: Coor, to: Coor) : string => to[0] == from[0] ? (to[1] > from[1] ? "r" : "l") : (to[0] > from[0] ? "d" : "u");
 var toId = (coor: Coor) : number => coor[0]*1000 + coor[1];
@@ -15,34 +25,36 @@ var upwards = (cur: Coor, next: Coor) : boolean => {
     return dir == 'u' && value == 'v' || dir == 'd' && value == '^' || dir == 'l' && value == '>' || dir == 'r' && value == '<';
 }
 
-const trails = h.read("23", "trails.txt", "ex").split('');
+const trails = h.read("23", "trails.txt").split('');
 
 const startCoor = [0, trails[0].getCoor(x => x == ".")![0]] as Coor;
-const start = {id: "start", coor: startCoor, dir: "d"};
+const startId = toId(startCoor);
+const start = {dirId: "start", id: toId(startCoor), coor: startCoor, dir: "d"} as Loc;
 const endCoor = [trails.length-1, trails[trails.length-1].getCoor(x => x == ".")![0]] as Coor;
+const endId = toId(endCoor);
 
 const visited = new Map<string, Loc>();
-const validTrails : Trail[] = [];
+const validTrails = new Map<number, Trail[]>();
 const toExplore: Loc[] = [start];
 while (toExplore.length > 0) {
     var curstart = toExplore.shift()!;
-    if (visited.has(curstart.id)) continue;
-    visited.set(curstart.id, curstart);
+    if (visited.has(curstart.dirId)) continue;
+    visited.set(curstart.dirId, curstart);
 
     var steps = 0;
     var cur = curstart;
     while (true) {
         // treat special cases (we are at start or end)
-        if (h.equals2(cur.coor, startCoor) && cur.dir == 'u') break;
-        if (h.equals2(cur.coor, endCoor)) {
-            validTrails.push({start: curstart, end: cur, length: steps});
+        if (cur.id == startId && cur.dir == 'u') break;
+        if (cur.id == endId) {
+            push(validTrails, curstart,cur, steps);
             break;
         }
-        if (h.equals2(cur.coor, curstart.coor)) {
+        if (cur.id == curstart.id) {
             // we are at the start of the current trail, move in direction of dir
             var nextPos = h.getnb(cur.coor, trails.length, trails[0].length, cur.dir)[0] as Coor;
             steps++;
-            cur = {id: cur.dir + toId(nextPos), coor: nextPos, dir: cur.dir};
+            cur = {dirId: cur.dir + toId(nextPos), id: toId(nextPos), coor: nextPos, dir: cur.dir} as Loc;
             continue;
         }
 
@@ -53,11 +65,11 @@ while (toExplore.length > 0) {
             // we are on a junction
             nb = nb.filter(n => !upwards(cur.coor, n)); // filter out upwards trails
             // add remaining to toExplore (if not already visited or in toExplore)
-            var toExplores = nb.map(n => getdir(cur.coor, n)).map(d => { return {id: d + toId(cur.coor), coor: cur.coor, dir: d} as Loc}); 
-            toExplores.filter(t => !visited.has(t.id) && !toExplore.includes(t)).forEach(t => toExplore.push(t));
+            var toExplores = nb.map(n => getdir(cur.coor, n)).map(d => { return {dirId: d + toId(cur.coor), id: toId(cur.coor), coor: cur.coor, dir: d} as Loc}); 
+            toExplores.filter(t => !visited.has(t.dirId) && !toExplore.includes(t)).forEach(t => toExplore.push(t));
 
             // add the current trail to the valid trails (if not all following trails are upwards)
-            if (nb.length > 0) validTrails.push({start: curstart, end: cur, length: steps});
+            if (nb.length > 0) push(validTrails, curstart,cur, steps);
             break;
         }
         // else: we are on a straight trail
@@ -68,8 +80,37 @@ while (toExplore.length > 0) {
         steps++;
         var next = nb[0];
         var dir = getdir(cur.coor, next);
-        cur = {id: dir + toId(next), coor: next, dir: dir};
+        cur = {dirId: dir + toId(next), id: toId(next), coor: next, dir: dir} as Loc;
     }
 }
 
-h.printobj(validTrails);
+// h.printobj(validTrails);
+
+// cycle all valid possible combinations of valid trails from start to end, without visiting the same node twice
+const remaining : TrailSet[] = [{nodes: [toId(start.coor)], length: 0, head: start} as TrailSet];
+const fullTrails = new Map<number, TrailSet[]>();
+var maxLength = -1;
+while (remaining.length > 0) {
+    var curSet = remaining.shift()!;
+
+    // move to done if set is complete
+    if (curSet.nodes.last() == endId) {
+        if (curSet.length > maxLength) maxLength = curSet.length;
+        pushSet(fullTrails, curSet);
+        continue;
+    }
+
+    // else: gather next trails, re-add to remaining
+    var nextTrails = validTrails.get(curSet.nodes.last())!
+        .filter(t => t.start.dir != opposite(curSet.head.dir)) // filter out any trails in wrong direction
+        .filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
+
+    nextTrails.forEach(t => {
+        var nextSet = {nodes: curSet.nodes.concat([t.endId]), length: curSet.length + t.length, head: t.end} as TrailSet;
+        remaining.push(nextSet);
+    });
+}
+
+var maxSets = fullTrails.get(maxLength)!;
+h.printobj(maxSets);
+h.print("part 1:", maxLength);
