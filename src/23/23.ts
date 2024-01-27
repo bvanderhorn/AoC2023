@@ -146,4 +146,5 @@ console.time("solve");
 var [maxLength2, fullTrails] = solve(validTrails2,2);
 console.timeEnd("solve");
 h.print("part 2:", maxLength2);
+h.print("number of full trails:", Array.from(fullTrails.values()).map(x => x.length).sum());
 h.printobj(fullTrails.get(maxLength2));
