@@ -4,6 +4,19 @@ type Loc = {dirId: string, id:number, coor: Coor, dir: string};
 type Trail = {start: Loc, startId: number, end: Loc, endId:number, length: number};
 type TrailSet = {nodes: number[], length: number, head: Loc};
 
+var getUnvisitedNb = (node: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => 
+    trailList.get(node)!.map(x => x.endId).filter(n => !visited.includes(n));
+var getStatus = (node: number, visited: number[], trailList: Map<number, Trail[]>) : string => {
+    var nb = getUnvisitedNb(node, visited, trailList);
+    if (nb.length == 0) return "dead";
+    if (nb.length == 1) return "loner";
+    if (nb.length == 2) {
+        var subNb = nb.map(n => getUnvisitedNb(n, visited, trailList).filter(n => n != node));
+        if (!subNb[0].some(sn => subNb[1].includes(sn))) return "tunnel";
+    }
+    return "ok";
+}
+
 var push = (trailList: Map<number, Trail[]>, start: Loc, end: Loc, length: number) => {
     var startId = toId(start.coor);
     var endId = toId(end.coor);
