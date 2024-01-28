@@ -17,6 +17,19 @@ var getStatus = (node: number, visited: number[], trailList: Map<number, Trail[]
     return "ok";
 }
 
+var findConnectedThrough = (node: number, nb: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => {
+    var connected = [];
+    var remaining = [nb];
+    while (remaining.length > 0) {
+        var cur = remaining.shift()!;
+        connected.push(cur);
+        var nb = getUnvisitedNb(cur, visited, trailList).filter(n => n != node)
+            .filter(n => !connected.includes(n) && !remaining.includes(n));
+        remaining.push(...nb);
+    }
+    return connected;
+}
+
 var push = (trailList: Map<number, Trail[]>, start: Loc, end: Loc, length: number) => {
     var startId = toId(start.coor);
     var endId = toId(end.coor);
