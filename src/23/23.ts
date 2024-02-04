@@ -22,7 +22,7 @@ var getStatus = (node: number, visited: number[], trailList: Map<number, Trail[]
 }
 
 var deadTunnel = (node:number, nodeNb:number[], tunnel:number, visited: number[], trailList: Map<number, Trail[]>) : number => {
-    // if any tunnels: find how many are dead if taking the wrong turn
+    // for a given tunnel: return how many nodes are dead based on the current node position
     var tunnelNb = getUnvisitedNb(tunnel, visited, trailList);
     var connectedNb = tunnelNb.map(n => findConnectedThrough(tunnel, n, visited, trailList));
     var deadNb = connectedNb.filter(n => !isAlive(n))[0];
@@ -44,7 +44,7 @@ var vividGameState = (node: number, visited: number[], trailList: Map<number, Tr
     var nodeNbs = getUnvisitedNb(node, visited, trailList);
     if (!alive.some(n => nodeNbs.includes(n))) return false;
 
-    // if any tunnels: find how many are dead if taking the wrong turn
+    // if any tunnels: find out the maximum number of dead nodes due to any tunnel, and add to existing fully dead nodes
     var tunnels = alive.filter(n => getStatus(n, visited, trailList) == "tunnel");
     var maxDeadFromTunnels = tunnels.map(t => deadTunnel(node, nodeNbs, t, visited, trailList)).max();
     return maxDeadFromTunnels + dead.length <= maxDead;
