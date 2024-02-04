@@ -2,33 +2,39 @@ import * as h from '../helpers';
 type Coor = [number, number];
 type Loc = {dirId: string, id:number, coor: Coor, dir: string};
 type Trail = {start: Loc, startId: number, end: Loc, endId:number, length: number};
-type TrailSet = {nodes: number[], length: number, head: Loc};
+type TrailSet = {nodes: number[], length: number, head: Loc, dead: number};
 
-var getUnvisitedNb = (node: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => 
-    trailList.get(node)!.map(x => x.endId).filter(n => !visited.includes(n));
+var getUnvisitedNb = (node: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => {
+    var trails = trailList.get(node);
+    if (trails == undefined) return [];
+    return trails.map(x => x.endId).filter(n => !visited.includes(n));
+}
+    
 var getStatus = (node: number, visited: number[], trailList: Map<number, Trail[]>) : string => {
     var nb = getUnvisitedNb(node, visited, trailList);
     if (nb.length == 0) return "dead";
     if (nb.length == 1) return "loner";
     if (nb.length == 2) {
-        var subNb = nb.map(n => getUnvisitedNb(n, visited, trailList).filter(n => n != node));
+        var subNb = nb.map(n => getUnvisitedNb(n, visited, trailList).filter(n => n != node).concat([n]));
         if (!subNb[0].some(sn => subNb[1].includes(sn))) return "tunnel";
     }
     return "ok";
 }
 
 var findConnectedThrough = (node: number, nb: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => {
-    var connected = [];
+    var connected: number[] = [];
     var remaining = [nb];
     while (remaining.length > 0) {
         var cur = remaining.shift()!;
         connected.push(cur);
-        var nb = getUnvisitedNb(cur, visited, trailList).filter(n => n != node)
-            .filter(n => !connected.includes(n) && !remaining.includes(n));
-        remaining.push(...nb);
+        var unvisitedNb = getUnvisitedNb(cur, visited, trailList).filter(n => n != node);
+        var curNb = unvisitedNb.filter(n => !connected.includes(n) && !remaining.includes(n));
+        remaining.push(...curNb);
     }
     return connected;
 }
+
+var isAlive  = (nodes: number[]) : boolean => nodes.includes(endId);
 
 var push = (trailList: Map<number, Trail[]>, start: Loc, end: Loc, length: number) => {
     var startId = toId(start.coor);
@@ -108,35 +114,59 @@ var reduce = (part: number) : Map<number, Trail[]> => {
 
 var solve = (validTrails: Map<number, Trail[]>, part: number = 1) : [number, Map<number, TrailSet[]>] => {
     // cycle all possible combinations of valid trails from start to end, without visiting the same node twice
-    const remaining : TrailSet[] = [{nodes: [toId(start.coor)], length: 0, head: start} as TrailSet];
+    const remaining : TrailSet[] = [{nodes: [toId(start.coor)], length: 0, head: start, dead: 0} as TrailSet];
     const fullTrails = new Map<number, TrailSet[]>();
     var maxLength = -1;
     while (remaining.length > 0) {
         var curSet = remaining.shift()!;
+        var curNode: number = curSet.nodes.last();
 
         // move to done if set is complete
-        if (curSet.nodes.last() == endId) {
+        if (curNode == endId) {
             if (curSet.length > maxLength) maxLength = curSet.length;
             pushSet(fullTrails, curSet);
             continue;
         }
 
         // else: gather next trails, re-add to remaining
-        var nextTrails = validTrails.get(curSet.nodes.last())!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
+        var nextNb = getUnvisitedNb(curNode, curSet.nodes, validTrails);
+        // var nextTrails = validTrails.get(curNode)!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
 
-        // if part 2: if any neighbour only has one remaining unvisited neighbour: take that one
-        // this incentifies the algorithm to find all hamiltonian paths
+        // // if part 2: if any neighbour only has one remaining unvisited neighbour: take that one
+        // // this incentifies the algorithm to find all hamiltonian paths
+        // if (part == 2) {
+        //     var lonesomeNb : Trail[] = [];
+        //     for (const nt of nextTrails) {
+        //         var nb: Trail[]|undefined = validTrails.get(nt.endId);
+        //         if (nb == undefined) continue; // don't break if coincidentally inspecting the last node (which has no leaving trails)
+        //         nb = nb.filter(t => !curSet.nodes.includes(t.endId));
+        //         if (nb.length == 1) lonesomeNb.push(nt);
+        //     }
+        //     if (lonesomeNb.length > 0) nextTrails = lonesomeNb;
+        // }
+
+        // if part 2: do some special neighbour inspection and filtering
         if (part == 2) {
-            var lonesomeNb : Trail[] = [];
-            for (const nt of nextTrails) {
-                var nb: Trail[]|undefined = validTrails.get(nt.endId);
-                if (nb == undefined) continue; // don't break if coincidentally inspecting the last node (which has no leaving trails)
-                nb = nb.filter(t => !curSet.nodes.includes(t.endId));
-                if (nb.length == 1) lonesomeNb.push(nt);
+            var tunnels = nextNb.filter(t => getStatus(t, curSet.nodes, validTrails) == "tunnel");
+            for (const tunnel of tunnels) {
+                // if any tunnels: find how many are dead if taking the wrong turn
+                var tunnelNb = getUnvisitedNb(tunnel, curSet.nodes, validTrails);
+                var connectedNb = tunnelNb.map(n => findConnectedThrough(tunnel, n, curSet.nodes, validTrails));
+                var deadNb = connectedNb.filter(n => !isAlive(n))[0];
+                if (deadNb == undefined) {
+                    var henk = 1;
+                }
+                if (deadNb.length > 2) {
+                    // if more than 2 dead ends: prevent by going in before closing off!
+                    nextNb = nextNb.filter(n => deadNb.includes(n));
+                    break;
+                }
             }
-            if (lonesomeNb.length > 0) nextTrails = lonesomeNb;
+            
+
         }
 
+        var nextTrails = nextNb.map(n => validTrails.get(curSet.nodes.last())!.find(t => t.endId == n)!);
         nextTrails.forEach(t => {
             var nextSet = {nodes: curSet.nodes.concat([t.endId]), length: curSet.length + t.length, head: t.end} as TrailSet;
             remaining.push(nextSet);
