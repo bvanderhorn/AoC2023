@@ -21,6 +21,35 @@ var getStatus = (node: number, visited: number[], trailList: Map<number, Trail[]
     return "ok";
 }
 
+var deadTunnel = (node:number, nodeNb:number[], tunnel:number, visited: number[], trailList: Map<number, Trail[]>) : number => {
+    // if any tunnels: find how many are dead if taking the wrong turn
+    var tunnelNb = getUnvisitedNb(tunnel, visited, trailList);
+    var connectedNb = tunnelNb.map(n => findConnectedThrough(tunnel, n, visited, trailList));
+    var deadNb = connectedNb.filter(n => !isAlive(n))[0];
+
+    // if current node is on the 'dead' side: dead fields are still salvagable => alive!
+    if (nodeNb.some(n => deadNb.includes(n))) return 0;
+
+    // if current node is on the 'live' side: return number of dead ends
+    return deadNb.length;
+}
+
+var vividGameState = (node: number, visited: number[], trailList: Map<number, Trail[]>) : boolean => {
+    var alive = findConnected(endId, visited, trailList);
+    var dead = allNodes(trailList).filter(n => !visited.includes(n) && !alive.includes(n));
+    // more than two dead: not a vivid game state
+    if (dead.length > maxDead) return false;
+
+    // current node is dead if no unvisited nbs are alive: not a vivid game state
+    var nodeNbs = getUnvisitedNb(node, visited, trailList);
+    if (!alive.some(n => nodeNbs.includes(n))) return false;
+
+    // if any tunnels: find how many are dead if taking the wrong turn
+    var tunnels = alive.filter(n => getStatus(n, visited, trailList) == "tunnel");
+    var maxDeadFromTunnels = tunnels.map(t => deadTunnel(node, nodeNbs, t, visited, trailList)).max();
+    return maxDeadFromTunnels + dead.length <= maxDead;
+}
+
 var findConnectedThrough = (node: number, nb: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => {
     var connected: number[] = [];
     var remaining = [nb];
@@ -34,6 +63,20 @@ var findConnectedThrough = (node: number, nb: number, visited: number[], trailLi
     return connected;
 }
 
+var findConnected = (node: number, visited: number[], trailList: Map<number, Trail[]>) : number[] => {
+    var connected: number[] = [];
+    var remaining = [node];
+    while (remaining.length > 0) {
+        var cur = remaining.shift()!;
+        connected.push(cur);
+        var unvisitedNb = getUnvisitedNb(cur, visited, trailList);
+        var curNb = unvisitedNb.filter(n => !connected.includes(n) && !remaining.includes(n));
+        remaining.push(...curNb);
+    }
+    return connected;
+}
+
+var allNodes = (trailList: Map<number, Trail[]>) : number[] => Array.from(trailList.keys());
 var isAlive  = (nodes: number[]) : boolean => nodes.includes(endId);
 
 var push = (trailList: Map<number, Trail[]>, start: Loc, end: Loc, length: number) => {
@@ -74,6 +117,9 @@ var reduce = (part: number) : Map<number, Trail[]> => {
             if (cur.id == start.id && cur.dir == 'u') break;
             if (cur.id == endId) {
                 push(validTrails, curstart,cur, steps);
+                if (part == 2) {
+                    push(validTrails, cur,curstart, steps);
+                }
                 break;
             }
             if (cur.id == curstart.id) {
@@ -128,46 +174,12 @@ var solve = (validTrails: Map<number, Trail[]>, part: number = 1) : [number, Map
             continue;
         }
 
+        // if part 2 and game state is not vivid: don't continue this trail, just move on
+        if (part == 2) if (! vividGameState(curNode, curSet.nodes, validTrails)) continue;
+
         // else: gather next trails, re-add to remaining
-        var nextNb = getUnvisitedNb(curNode, curSet.nodes, validTrails);
-        // var nextTrails = validTrails.get(curNode)!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
-
-        // // if part 2: if any neighbour only has one remaining unvisited neighbour: take that one
-        // // this incentifies the algorithm to find all hamiltonian paths
-        // if (part == 2) {
-        //     var lonesomeNb : Trail[] = [];
-        //     for (const nt of nextTrails) {
-        //         var nb: Trail[]|undefined = validTrails.get(nt.endId);
-        //         if (nb == undefined) continue; // don't break if coincidentally inspecting the last node (which has no leaving trails)
-        //         nb = nb.filter(t => !curSet.nodes.includes(t.endId));
-        //         if (nb.length == 1) lonesomeNb.push(nt);
-        //     }
-        //     if (lonesomeNb.length > 0) nextTrails = lonesomeNb;
-        // }
-
-        // if part 2: do some special neighbour inspection and filtering
-        if (part == 2) {
-            var tunnels = nextNb.filter(t => getStatus(t, curSet.nodes, validTrails) == "tunnel");
-            for (const tunnel of tunnels) {
-                // if any tunnels: find how many are dead if taking the wrong turn
-                var tunnelNb = getUnvisitedNb(tunnel, curSet.nodes, validTrails);
-                var connectedNb = tunnelNb.map(n => findConnectedThrough(tunnel, n, curSet.nodes, validTrails));
-                var deadNb = connectedNb.filter(n => !isAlive(n))[0];
-                if (deadNb == undefined) {
-                    var henk = 1;
-                }
-                if (deadNb.length > 2) {
-                    // if more than 2 dead ends: prevent by going in before closing off!
-                    nextNb = nextNb.filter(n => deadNb.includes(n));
-                    break;
-                }
-            }
-            
-
-        }
-
-        var nextTrails = nextNb.map(n => validTrails.get(curSet.nodes.last())!.find(t => t.endId == n)!);
-        nextTrails.forEach(t => {
+        var nextTrails = validTrails.get(curSet.nodes.last())!.filter(t => !curSet.nodes.includes(t.endId)); // filter out any trails to nodes that have already been visited
+        nextTrails.forEach(t => {            
             var nextSet = {nodes: curSet.nodes.concat([t.endId]), length: curSet.length + t.length, head: t.end} as TrailSet;
             remaining.push(nextSet);
         });
@@ -191,6 +203,7 @@ var [maxLength1, _] = solve(validTrails1);
 h.print("part 1:", maxLength1);
 
 // part 2
+const maxDead = 2;
 console.time("build trails");
 var validTrails2 = reduce(2);
 var vsize2 = 0;
